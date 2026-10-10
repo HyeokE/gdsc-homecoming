@@ -255,9 +255,10 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
         if (disposed) {
           return;
         }
+        const backgroundColor = getComputedStyle(print).getPropertyValue('--ui-ticket').trim();
         const [captured, capturedBack] = await Promise.all([
-          toCanvas(print, { pixelRatio: 2, backgroundColor: '#faf9f6' }),
-          toCanvas(backPrint, { pixelRatio: 2, backgroundColor: '#f5f1e7' }),
+          toCanvas(print, { pixelRatio: 2, backgroundColor }),
+          toCanvas(backPrint, { pixelRatio: 2, backgroundColor }),
         ]);
         if (disposed) {
           return;

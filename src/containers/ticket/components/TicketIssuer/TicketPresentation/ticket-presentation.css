@@ -94,7 +94,7 @@
 }
 .ticket-presentation__ticket .boarding-pass__main,
 .ticket-presentation__ticket .boarding-pass__stub {
-  background: #faf9f6;
+  background: var(--ui-ticket);
 }
 .ticket-presentation__ticket .boarding-pass__stub {
   position: relative;
@@ -148,9 +148,9 @@
       105deg,
       rgb(198 192 179 / calc(var(--tear-progress) * 0.28)),
       transparent 22%,
-      rgb(255 255 255 / calc(var(--tear-progress) * 0.45)) 75%
+      rgb(255 250 237 / calc(var(--tear-progress) * 0.2)) 75%
     ),
-    #faf9f6;
+    var(--ui-ticket);
 }
 .ticket-presentation__paper-strip .boarding-pass__stub::before {
   content: '';

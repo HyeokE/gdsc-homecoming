@@ -100,7 +100,7 @@
 .ticket-viewer__back {
   position: absolute;
   inset: 0;
-  background: #f5f1ea;
+  background: var(--ui-ticket);
   border-radius: 1px;
   transform: rotateY(180deg);
   backface-visibility: hidden;
@@ -157,7 +157,7 @@
   overflow: hidden;
   box-sizing: border-box;
   border: 1px solid #ddd8cd;
-  background: #f5f1e7;
+  background: var(--ui-ticket);
   color: #34473e;
   font-family: var(--font-mono);
   line-height: 1.25;
