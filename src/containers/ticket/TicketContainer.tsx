@@ -94,7 +94,7 @@ function IssuingFlow({
         <button
           type="button"
           onClick={onReplayExit}
-          className="absolute top-0 right-4 z-10 min-h-control px-3 text-caption underline underline-offset-4"
+          className="absolute -top-4 right-4 z-10 min-h-control px-3 text-caption underline underline-offset-4"
         >
           탑승권으로 돌아가기
         </button>
