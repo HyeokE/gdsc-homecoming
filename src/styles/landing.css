@@ -1,0 +1,76 @@
+.landing__title {
+  margin: 1.75rem 0 0;
+  font-size: clamp(4rem, 27cqi, 6.5rem);
+}
+.landing__title span {
+  display: block;
+}
+.landing__invitation {
+  margin-top: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.035em;
+  word-break: keep-all;
+}
+.landing__intro {
+  margin-top: 0.75rem;
+  color: var(--ui-muted);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.landing__details {
+  margin: 0;
+}
+.landing__detail {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--ui-board-seam);
+  font-size: 0.9375rem;
+}
+.landing__detail:first-child {
+  padding-top: 0;
+}
+.landing__detail dt {
+  color: var(--ui-muted);
+  font-size: 0.875rem;
+}
+.landing__schedule {
+  display: grid;
+  gap: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.landing__venue {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: -0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+.landing__start {
+  margin-top: 1.25rem;
+}
+.landing__help {
+  margin-top: 0.875rem;
+  color: var(--ui-muted);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 260px) {
+  .landing__detail {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}

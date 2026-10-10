@@ -401,7 +401,7 @@ function App() {
   return (
     <main
       tabIndex={-1}
-      className={`mx-auto flex min-h-svh w-full flex-col items-start bg-canvas px-page py-4 text-foreground ${['/departure', '/issuer'].includes(location.pathname) && !booting ? 'max-w-[960px]' : 'max-w-mobile'}`}
+      className={`mx-auto flex min-h-svh w-full flex-col items-start bg-canvas py-4 text-foreground ${['/departure', '/issuer'].includes(location.pathname) && !booting ? 'max-w-[960px] px-page' : 'max-w-mobile px-4'}`}
     >
       <p className="mb-4 text-caption text-muted">
         데모 · 예시 이메일의 탑승권만 이 브라우저에 저장돼요. 실제 행사 발권은

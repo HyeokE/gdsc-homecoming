@@ -1,5 +1,7 @@
 import { useId } from 'react'
 import type { FormEvent } from 'react'
+import { PaperTicket, TicketPerforation, contactUrl } from '../PaperTicket'
+import '../../styles/terminal-ui.css'
 
 export type InputScreenStatus = 'idle' | 'loading' | 'checking-result'
 export interface InputScreenError {
@@ -17,10 +19,9 @@ export interface InputScreenProps {
 }
 
 export const primaryButtonClass =
-  'min-h-control w-full rounded-control bg-primary px-5 py-3 text-body font-semibold text-on-primary transition-colors duration-feedback ease-ui hover:bg-primary-hover active:bg-primary-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:bg-disabled disabled:text-on-disabled disabled:hover:bg-disabled'
+  'terminal-button min-h-control w-full rounded-control bg-primary px-5 py-3 text-body font-semibold text-on-primary transition-colors duration-feedback ease-ui hover:bg-primary-hover active:bg-primary-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:bg-disabled disabled:text-on-disabled disabled:hover:bg-disabled'
 export const secondaryButtonClass =
   'min-h-control rounded-control border border-border bg-transparent px-4 py-3 text-body font-semibold text-foreground transition-colors duration-feedback hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:text-on-disabled'
-export const contactUrl = 'https://open.kakao.com/o/gvuQCBRi'
 
 interface InputScreenViewProps extends InputScreenProps {
   kind: 'email' | 'nickname'
@@ -50,23 +51,25 @@ export function InputScreen({
     if (!busy && !disabled) onSubmit()
   }
   return (
-    <section className="w-full min-w-0 py-4" aria-labelledby={`${id}-title`}>
+    <PaperTicket titleId={`${id}-title`} className="terminal-form">
       <button
         type="button"
         onClick={onBack}
         disabled={busy}
-        className="mb-8 min-h-touch min-w-touch text-body text-muted underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className="terminal-form__back paper-ticket__link self-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
-        뒤로 가기
+        <span aria-hidden="true">←&nbsp;</span>뒤로 가기
       </button>
-      <h1
-        id={`${id}-title`}
-        tabIndex={-1}
-        className="text-title font-semibold tracking-tight"
+      <p
+        className={`paper-ticket__display terminal-form__display ${email ? '' : 'terminal-form__display--passenger'}`}
+        aria-hidden="true"
       >
+        {email ? 'CHECK-IN' : 'PASSENGER'}
+      </p>
+      <h1 id={`${id}-title`} tabIndex={-1} className="terminal-form__title">
         {email ? '신청한 이메일을 입력해주세요' : '닉네임을 입력해주세요.'}
       </h1>
-      <p id={`${id}-help`} className="mt-4 text-body text-muted">
+      <p id={`${id}-help`} className="terminal-form__help">
         {email
           ? '참가 신청에 사용한 이메일로 발권할 수 있어요.'
           : '(닉네임 + 성 조합)'}
@@ -76,10 +79,16 @@ export function InputScreen({
           데모 이메일: <span className="wrap-anywhere">{demoEmail}</span>
         </p>
       )}
-      <form className="mt-10" onSubmit={submit} noValidate aria-busy={busy}>
+      <TicketPerforation />
+      <form
+        className="terminal-form__fields"
+        onSubmit={submit}
+        noValidate
+        aria-busy={busy}
+      >
         <label
           htmlFor={`${id}-input`}
-          className="mb-3 block text-caption font-semibold"
+          className="mb-2 block text-caption text-muted"
         >
           {email ? '신청한 이메일' : '닉네임 + 성'}
         </label>
@@ -97,7 +106,7 @@ export function InputScreen({
           aria-invalid={fieldError || undefined}
           aria-describedby={`${id}-help${message ? ` ${id}-error` : ''}`}
           placeholder={email ? 'name@example.com' : 'JASON JEONG'}
-          className="min-h-control w-full min-w-0 rounded-control border border-border bg-surface px-4 py-3 text-body text-foreground placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:text-on-disabled aria-invalid:border-error"
+          className="terminal-form__input min-h-control w-full min-w-0 text-body text-foreground placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:text-on-disabled aria-invalid:border-error"
         />
         {message && (
           <p
@@ -121,17 +130,22 @@ export function InputScreen({
           disabled={disabled || busy}
           className={`${primaryButtonClass} mt-8`}
         >
-          {busy
-            ? status === 'checking-result'
-              ? '발급 결과 확인 중…'
-              : email
-                ? '확인 중…'
-                : '탑승권 준비 중…'
-            : error && !fieldError
-              ? '다시 시도'
-              : email
-                ? '확인하기'
-                : '발권하기'}
+          <span>
+            {busy
+              ? status === 'checking-result'
+                ? '발급 결과 확인 중…'
+                : email
+                  ? '확인 중…'
+                  : '탑승권 준비 중…'
+              : error && !fieldError
+                ? '다시 시도'
+                : email
+                  ? '확인하기'
+                  : '발권하기'}
+          </span>
+          <span className="paper-ticket__arrow" aria-hidden="true">
+            →
+          </span>
         </button>
         <p
           role="status"
@@ -145,6 +159,6 @@ export function InputScreen({
               : '\u00a0'}
         </p>
       </form>
-    </section>
+    </PaperTicket>
   )
 }

@@ -23,7 +23,7 @@
   --palette-green-soft: #81cf96;
   --palette-red-soft: #ff9a91;
 
-  --ui-canvas: var(--palette-charcoal-950);
+  --ui-canvas: #000;
   --ui-surface: var(--palette-charcoal-900);
   --ui-surface-raised: var(--palette-charcoal-800);
   --ui-foreground: var(--palette-ivory);
@@ -105,8 +105,8 @@
   --spacing-control: 3rem;
   --spacing-touch: 2.75rem;
   --container-mobile: 500px;
-  --radius-control: 0.625rem;
-  --radius-panel: 0.75rem;
+  --radius-control: 0.25rem;
+  --radius-panel: 0.25rem;
   --radius-ticket: 0.25rem;
   --shadow-panel: 0 8px 24px rgb(0 0 0 / 20%);
   --shadow-ticket: 0 12px 28px rgb(0 0 0 / 28%);
