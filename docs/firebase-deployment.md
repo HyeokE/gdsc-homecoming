@@ -2,7 +2,7 @@
 
 Firebase 프로젝트 ID는 `gdsc-homecomming`으로 유지한다. 새 Hosting 사이트 ID는 `gdsc-homecoming`이며, 대표 주소는 [gdsc-homecoming.web.app](https://gdsc-homecoming.web.app)이다. `dist/`를 새 사이트에 배포하고 앱 경로는 SPA의 `index.html`로 연결한다. 프로젝트 ID와 Hosting 사이트 ID는 서로 다르므로 Firebase SDK·Firestore·Storage·OIDC의 프로젝트 설정을 새 도메인 철자로 바꾸지 않는다.
 
-`firebase.json`은 같은 프로젝트의 Hosting 사이트 두 개를 함께 배포한다. 기존 `gdsc-homecomming` 사이트는 파일을 배포하지 않고 `source: "/:path*"`, `destination: "https://gdsc-homecoming.web.app/:path"`, `type: 301`로 경로를 유지해 새 사이트로 이동시킨다. `*`는 캡처하는 source에만 들어간다. 이 구문은 [Firebase 경로 캡처 문서](https://firebase.google.com/docs/hosting/full-config#capture_url_segments_for_redirects)를 따른다. 신규 사이트의 `no-cache` 및 `/assets/**` 장기 캐시 헤더와 SPA rewrite는 기존 동작을 유지한다.
+`firebase.json`은 같은 프로젝트의 Hosting 사이트 두 개를 함께 배포한다. 기존 `gdsc-homecomming` 사이트는 파일을 배포하지 않고 루트 `/`를 새 도메인의 `/`로 명시적으로 301 이동시킨다. 나머지 경로는 `source: "/:path*"`, `destination: "https://gdsc-homecoming.web.app/:path"`, `type: 301`로 경로를 유지해 새 사이트로 이동시킨다. `*`는 캡처하는 source에만 들어간다. 이 구문은 [Firebase 경로 캡처 문서](https://firebase.google.com/docs/hosting/full-config#capture_url_segments_for_redirects)를 따른다. 신규 사이트의 `no-cache` 및 `/assets/**` 장기 캐시 헤더와 SPA rewrite는 기존 동작을 유지한다.
 
 도메인이 달라지면 브라우저 저장소도 분리된다. 기존 주소의 세션은 새 주소로 복사되지 않으므로 참가자는 이메일을 다시 입력해 Firestore의 기존 탑승권을 복원한다. 새 도메인 배포 검증은 `/`, `/user/result/<uuid>`, query가 있는 경로의 이전 주소 301 응답과 새 사이트 응답을 확인해야 한다. 아래 기록은 도메인 이전 전의 배포 증거이며, 설정 변경만으로 새 도메인 배포 완료를 의미하지 않는다.
 

@@ -51,6 +51,11 @@
       "site": "gdsc-homecomming",
       "redirects": [
         {
+          "source": "/",
+          "destination": "https://gdsc-homecoming.web.app/",
+          "type": 301
+        },
+        {
           "source": "/:path*",
           "destination": "https://gdsc-homecoming.web.app/:path",
           "type": 301

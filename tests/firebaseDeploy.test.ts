@@ -29,7 +29,10 @@ const primaryHosting = {
 };
 const legacyHosting = {
   site: 'gdsc-homecomming',
-  redirects: [{ source: '/:path*', destination: 'https://gdsc-homecoming.web.app/:path', type: 301 }],
+  redirects: [
+    { source: '/', destination: 'https://gdsc-homecoming.web.app/', type: 301 },
+    { source: '/:path*', destination: 'https://gdsc-homecoming.web.app/:path', type: 301 },
+  ],
 };
 function firebaseConfig(hosting: unknown = [primaryHosting, legacyHosting]) {
   return { hosting, firestore: { rules: 'firestore.rules', indexes: 'firestore.indexes.json' } };
@@ -240,6 +243,17 @@ describe('Firebase deployment CLI boundaries', () => {
         legacyHosting,
       ],
       [primaryHosting, { ...legacyHosting, public: 'dist' }],
+      [primaryHosting, { ...legacyHosting, redirects: legacyHosting.redirects.slice(1) }],
+      [
+        primaryHosting,
+        {
+          ...legacyHosting,
+          redirects: [
+            { ...legacyHosting.redirects[0], destination: 'https://wrong.example/' },
+            legacyHosting.redirects[1],
+          ],
+        },
+      ],
       [primaryHosting, { ...legacyHosting, redirects: [{ ...legacyHosting.redirects[0], source: '/' }] }],
       [
         primaryHosting,

@@ -110,11 +110,16 @@ export function validateFirebaseConfig(root) {
     primary.rewrites[0].source !== '**' ||
     primary.rewrites[0].destination !== '/index.html' ||
     Object.keys(legacy).some((key) => !['site', 'redirects'].includes(key)) ||
-    legacy.redirects?.length !== 1 ||
-    Object.keys(legacy.redirects[0] ?? {}).some((key) => !['source', 'destination', 'type'].includes(key)) ||
-    legacy.redirects[0].source !== '/:path*' ||
-    legacy.redirects[0].destination !== `https://${HOSTING_SITE_ID}.web.app/:path` ||
+    legacy.redirects?.length !== 2 ||
+    legacy.redirects[0].source !== '/' ||
+    legacy.redirects[0].destination !== `https://${HOSTING_SITE_ID}.web.app/` ||
     legacy.redirects[0].type !== 301 ||
+    legacy.redirects.some((redirect) =>
+      Object.keys(redirect ?? {}).some((key) => !['source', 'destination', 'type'].includes(key)),
+    ) ||
+    legacy.redirects[1].source !== '/:path*' ||
+    legacy.redirects[1].destination !== `https://${HOSTING_SITE_ID}.web.app/:path` ||
+    legacy.redirects[1].type !== 301 ||
     config.firestore?.rules !== 'firestore.rules' ||
     config.firestore?.indexes !== 'firestore.indexes.json'
   ) {
