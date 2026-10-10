@@ -119,7 +119,8 @@
   --tear-progress: 0;
 }
 .ticket-presentation__ticket[data-bent] > .boarding-pass > .boarding-pass__stub {
-  opacity: 0;
+  /* Motion owns inline opacity for shared layout; keep the original measurable but hidden. */
+  visibility: hidden;
 }
 .ticket-presentation__ticket:not([data-bent]) .ticket-presentation__mesh {
   visibility: hidden;
@@ -237,18 +238,18 @@
 }
 @keyframes ticket-paper-handoff {
   from {
-    opacity: 0;
+    visibility: hidden;
   }
   to {
-    opacity: 1;
+    visibility: visible;
   }
 }
 @keyframes ticket-mesh-handoff {
   from {
-    opacity: 1;
+    visibility: visible;
   }
   to {
-    opacity: 0;
+    visibility: hidden;
   }
 }
 @keyframes ticket-main-release {

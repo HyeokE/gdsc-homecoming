@@ -102,9 +102,13 @@ function TearToDetailPreview(args: React.ComponentProps<typeof TicketScreen>) {
   );
 }
 
-export const TearToDetail: Story = {
+export const ManualTear: Story = {
   parameters: { canvasMaxWidth: 1000 },
   render: (args) => <TearToDetailPreview {...args} />,
+};
+
+export const TearToDetail: Story = {
+  ...ManualTear,
   play: async ({ canvasElement, globals }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: '탑승권 받기' }));
