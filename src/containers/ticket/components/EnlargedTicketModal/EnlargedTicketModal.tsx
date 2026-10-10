@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { toCanvas } from 'html-to-image';
 import { BoardingPass } from '../BoardingPass';
+import { BoardingPassBack } from './BoardingPassBack';
 import type { DepartureResult } from '../../types/departure';
 import { createPaperRenderer } from './paperRenderer';
 import type { PaperPose } from './paperRenderer';
@@ -22,6 +23,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
   const paperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const backPrintRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
 
   useEffect(() => {
@@ -30,7 +32,8 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
     const paper = paperRef.current;
     const canvas = canvasRef.current;
     const print = printRef.current;
-    if (!open || !dialog || !stage || !paper || !canvas || !print) {
+    const backPrint = backPrintRef.current;
+    if (!open || !dialog || !stage || !paper || !canvas || !print || !backPrint) {
       return;
     }
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -38,6 +41,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let renderer: ReturnType<typeof createPaperRenderer> = null;
     let texture: HTMLCanvasElement | null = null;
+    let backTexture: HTMLCanvasElement | null = null;
     let disposed = false;
     let frame = 0;
     let lastTime = 0;
@@ -214,7 +218,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
 
     function handleContextRestored() {
       if (!disposed && texture) {
-        renderer = createPaperRenderer(canvas!, texture);
+        renderer = createPaperRenderer(canvas!, texture, backTexture ?? undefined);
         if (renderer) {
           stage!.dataset.rendered = 'true';
         }
@@ -251,11 +255,15 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
         if (disposed) {
           return;
         }
-        const captured = await toCanvas(print, { pixelRatio: 2, backgroundColor: '#faf9f6' });
+        const [captured, capturedBack] = await Promise.all([
+          toCanvas(print, { pixelRatio: 2, backgroundColor: '#faf9f6' }),
+          toCanvas(backPrint, { pixelRatio: 2, backgroundColor: '#f5f1e7' }),
+        ]);
         if (disposed) {
           return;
         }
         texture = captured;
+        backTexture = capturedBack;
         handleContextRestored();
       } catch {
         // Keep the complete, readable DOM ticket if texture capture is unavailable.
@@ -333,7 +341,11 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
               <div ref={printRef} className="ticket-viewer__print">
                 <BoardingPass result={result} exportMode displayMode="expanded" />
               </div>
-              <div className="ticket-viewer__back" aria-hidden="true" />
+              <div className="ticket-viewer__back" aria-hidden="true">
+                <div ref={backPrintRef} className="ticket-viewer__back-print">
+                  <BoardingPassBack result={result} />
+                </div>
+              </div>
             </div>
             <canvas ref={canvasRef} className="ticket-viewer__canvas" aria-hidden="true" />
           </div>

@@ -26,6 +26,7 @@ export interface PaperGeometry {
   positions: Float32Array;
   normals: Float32Array;
   uvs: Float32Array;
+  backUvs: Float32Array;
   indices: Uint16Array;
   columns: number;
   rows: number;
@@ -64,6 +65,7 @@ export function createPaperGeometry(
   const positions = new Float32Array(count * 3);
   const normals = new Float32Array(count * 3);
   const uvs = new Float32Array(count * 2);
+  const backUvs = new Float32Array(count * 2);
   const indices = new Uint16Array(columns * rows * 6);
   const bendX = clamp(finite(pose.bendX), -1.2, 1.2);
   const bendY = clamp(finite(pose.bendY), -1.2, 1.2);
@@ -110,19 +112,22 @@ export function createPaperGeometry(
         vertex * 3,
       );
       uvs.set([column / columns, row / rows], vertex * 2);
+      // The backside is viewed from the opposite direction; keep its lettering readable.
+      backUvs.set([1 - column / columns, row / rows], vertex * 2);
       if (row < rows && column < columns) {
         const above = vertex + columns + 1;
         indices.set([vertex, vertex + 1, above, vertex + 1, above + 1, above], (row * columns + column) * 6);
       }
     }
   }
-  return { positions, normals, uvs, indices, columns, rows };
+  return { positions, normals, uvs, backUvs, indices, columns, rows };
 }
 
 const vertexSource = `
 attribute vec3 aPosition;
 attribute vec3 aNormal;
 attribute vec2 aUv;
+attribute vec2 aBackUv;
 uniform mat3 uRotation;
 uniform vec2 uViewport;
 uniform float uCamera;
@@ -132,11 +137,13 @@ uniform bool uShadow;
 uniform float uSpread;
 varying vec3 vNormal;
 varying vec2 vUv;
+varying vec2 vBackUv;
 void main() {
   vec3 position = uRotation * aPosition;
   position.z += uLift;
   vNormal = uRotation * aNormal;
   vUv = aUv;
+  vBackUv = aBackUv;
   if (uShadow) {
     float separation = max(0.0, position.z + 24.0);
     position.xy += vec2(0.20, -0.30) * separation;
@@ -152,11 +159,13 @@ void main() {
 const fragmentSource = `
 precision mediump float;
 uniform sampler2D uTexture;
+uniform sampler2D uBackTexture;
 uniform bool uShadow;
 uniform float uShadowOpacity;
 uniform vec2 uPaperSize;
 varying vec3 vNormal;
 varying vec2 vUv;
+varying vec2 vBackUv;
 float noise(vec2 point) {
   return fract(sin(dot(point, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -170,12 +179,12 @@ void main() {
   vec3 key = normalize(vec3(-0.35, 0.55, 1.0));
   vec3 fill = normalize(vec3(0.50, -0.15, 0.75));
   float lighting = 0.72 + 0.23 * max(0.0, dot(normal, key)) + 0.08 * max(0.0, dot(normal, fill));
-  vec4 texel = texture2D(uTexture, vUv);
-  vec3 paper = gl_FrontFacing ? texel.rgb : vec3(0.960, 0.947, 0.918);
+  vec4 texel = gl_FrontFacing ? texture2D(uTexture, vUv) : texture2D(uBackTexture, vBackUv);
+  vec3 paper = texel.rgb;
   vec2 grainPoint = floor(vUv * uPaperSize * 1.5);
   float grain = (noise(grainPoint) - 0.5) * 0.006;
   float fiber = (noise(vec2(floor(grainPoint.x * 0.13), grainPoint.y)) - 0.5) * 0.003;
-  gl_FragColor = vec4(paper * lighting + grain + fiber, gl_FrontFacing ? texel.a : 1.0);
+  gl_FragColor = vec4(paper * lighting + grain + fiber, texel.a);
 }
 `;
 
@@ -206,12 +215,16 @@ export function paperRotation(pose: PaperPose): Float32Array {
 }
 
 /** Draw-on-demand WebGL1 renderer; the caller owns the animation/spring clock. */
-export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanvasElement): PaperRenderer | null {
+export function createPaperRenderer(
+  canvas: HTMLCanvasElement,
+  texture: HTMLCanvasElement,
+  backTexture?: HTMLCanvasElement,
+): PaperRenderer | null {
   let gl: WebGLRenderingContext | null = null;
   let program: WebGLProgram | null = null;
   const shaders: WebGLShader[] = [];
   const buffers: WebGLBuffer[] = [];
-  let paperTexture: WebGLTexture | null = null;
+  const textures: WebGLTexture[] = [];
   let disposed = false;
   function dispose() {
     if (disposed) {
@@ -227,8 +240,8 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
     for (const shader of shaders) {
       gl.deleteShader(shader);
     }
-    if (paperTexture) {
-      gl.deleteTexture(paperTexture);
+    for (const texture of textures) {
+      gl.deleteTexture(texture);
     }
     if (program) {
       gl.deleteProgram(program);
@@ -242,7 +255,12 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
     });
-    if (!gl || texture.width < 1 || texture.height < 1) {
+    if (
+      !gl ||
+      texture.width < 1 ||
+      texture.height < 1 ||
+      (backTexture && (backTexture.width < 1 || backTexture.height < 1))
+    ) {
       dispose();
       return null;
     }
@@ -282,38 +300,64 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
       throw new Error('Paper index buffer unavailable');
     }
     buffers.push(indexBuffer);
-    paperTexture = context.createTexture();
-    if (!paperTexture) {
-      throw new Error('Paper texture unavailable');
-    }
-    context.bindTexture(context.TEXTURE_2D, paperTexture);
-    context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, true);
-    context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
-    context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
-    context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR);
-    context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MAG_FILTER, context.LINEAR);
     const maximumTextureSize = context.getParameter(context.MAX_TEXTURE_SIZE) as number;
-    let uploadTexture = texture;
-    if (Math.max(texture.width, texture.height) > maximumTextureSize) {
-      const scale = maximumTextureSize / Math.max(texture.width, texture.height);
-      const resized = document.createElement('canvas');
-      resized.width = Math.max(1, Math.floor(texture.width * scale));
-      resized.height = Math.max(1, Math.floor(texture.height * scale));
-      const painter = resized.getContext('2d');
-      if (!painter) {
-        throw new Error('Paper texture resize unavailable');
+    if (!Number.isFinite(maximumTextureSize) || maximumTextureSize < 1) {
+      throw new Error('Paper texture capacity unavailable');
+    }
+    function uploadPaperTexture(source: HTMLCanvasElement | undefined, unit: number) {
+      const handle = context.createTexture();
+      if (!handle) {
+        throw new Error('Paper texture unavailable');
       }
-      painter.drawImage(texture, 0, 0, resized.width, resized.height);
-      uploadTexture = resized;
+      textures.push(handle);
+      context.activeTexture(context.TEXTURE0 + unit);
+      context.bindTexture(context.TEXTURE_2D, handle);
+      context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, true);
+      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
+      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
+      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR);
+      context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MAG_FILTER, context.LINEAR);
+      if (source) {
+        let uploadTexture = source;
+        if (Math.max(source.width, source.height) > maximumTextureSize) {
+          const scale = maximumTextureSize / Math.max(source.width, source.height);
+          const resized = canvas.ownerDocument.createElement('canvas');
+          resized.width = Math.max(1, Math.floor(source.width * scale));
+          resized.height = Math.max(1, Math.floor(source.height * scale));
+          const painter = resized.getContext('2d');
+          if (!painter) {
+            throw new Error('Paper texture resize unavailable');
+          }
+          painter.drawImage(source, 0, 0, resized.width, resized.height);
+          uploadTexture = resized;
+        }
+        context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, uploadTexture);
+      } else {
+        // Older callers retain an opaque, warm-paper reverse without duplicating front ink.
+        context.texImage2D(
+          context.TEXTURE_2D,
+          0,
+          context.RGBA,
+          1,
+          1,
+          0,
+          context.RGBA,
+          context.UNSIGNED_BYTE,
+          new Uint8Array([245, 242, 234, 255]),
+        );
+      }
+      if (context.getError() !== context.NO_ERROR) {
+        throw new Error('Paper texture upload failed');
+      }
+      return handle;
     }
-    context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, uploadTexture);
-    if (context.getError() !== context.NO_ERROR) {
-      throw new Error('Paper texture upload failed');
-    }
+    const paperTexture = uploadPaperTexture(texture, 0);
+    const paperBackTexture = uploadPaperTexture(backTexture, 1);
     const attributes = {
       position: context.getAttribLocation(shaderProgram, 'aPosition'),
       normal: context.getAttribLocation(shaderProgram, 'aNormal'),
       uv: context.getAttribLocation(shaderProgram, 'aUv'),
+      backUv: context.getAttribLocation(shaderProgram, 'aBackUv'),
     };
     const uniforms = Object.fromEntries(
       [
@@ -326,10 +370,11 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
         'Spread',
         'ShadowOpacity',
         'Texture',
+        'BackTexture',
         'PaperSize',
       ].map((name) => [name, context.getUniformLocation(shaderProgram, `u${name}`)]),
     );
-    const vertexData = new Float32Array((COLUMNS + 1) * (ROWS + 1) * 8);
+    const vertexData = new Float32Array((COLUMNS + 1) * (ROWS + 1) * 10);
     let indicesUploaded = false;
     return {
       dispose,
@@ -353,9 +398,10 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
         context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
         const geometry = createPaperGeometry(frame.paperWidth, frame.paperHeight, frame.pose);
         for (let vertex = 0; vertex < geometry.positions.length / 3; vertex++) {
-          vertexData.set(geometry.positions.subarray(vertex * 3, vertex * 3 + 3), vertex * 8);
-          vertexData.set(geometry.normals.subarray(vertex * 3, vertex * 3 + 3), vertex * 8 + 3);
-          vertexData.set(geometry.uvs.subarray(vertex * 2, vertex * 2 + 2), vertex * 8 + 6);
+          vertexData.set(geometry.positions.subarray(vertex * 3, vertex * 3 + 3), vertex * 10);
+          vertexData.set(geometry.normals.subarray(vertex * 3, vertex * 3 + 3), vertex * 10 + 3);
+          vertexData.set(geometry.uvs.subarray(vertex * 2, vertex * 2 + 2), vertex * 10 + 6);
+          vertexData.set(geometry.backUvs.subarray(vertex * 2, vertex * 2 + 2), vertex * 10 + 8);
         }
         context.useProgram(shaderProgram);
         context.bindBuffer(context.ARRAY_BUFFER, vertexBuffer);
@@ -369,9 +415,10 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
           [attributes.position, 3, 0],
           [attributes.normal, 3, 12],
           [attributes.uv, 2, 24],
+          [attributes.backUv, 2, 32],
         ]) {
           context.enableVertexAttribArray(location);
-          context.vertexAttribPointer(location, size, context.FLOAT, false, 32, offset);
+          context.vertexAttribPointer(location, size, context.FLOAT, false, 40, offset);
         }
         // A short landscape viewport must not place the lens inside the curled sheet.
         const camera = Math.max(
@@ -387,6 +434,9 @@ export function createPaperRenderer(canvas: HTMLCanvasElement, texture: HTMLCanv
         context.activeTexture(context.TEXTURE0);
         context.bindTexture(context.TEXTURE_2D, paperTexture);
         context.uniform1i(uniforms.Texture, 0);
+        context.activeTexture(context.TEXTURE1);
+        context.bindTexture(context.TEXTURE_2D, paperBackTexture);
+        context.uniform1i(uniforms.BackTexture, 1);
         context.disable(context.CULL_FACE);
         context.enable(context.BLEND);
         context.blendFuncSeparate(
