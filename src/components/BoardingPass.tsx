@@ -80,7 +80,7 @@ function BoardingPassStubContent({
         </div>
         <div>
           <dt>DATE</dt>
-          <dd>21NOV2026</dd>
+          <dd>21 NOV</dd>
         </div>
         <div>
           <dt>BOARDING</dt>
@@ -91,7 +91,7 @@ function BoardingPassStubContent({
           <dd>{result.gate}</dd>
         </div>
       </dl>
-      <p className="boarding-pass__stub-class">HOMECOMING CLASS</p>
+      <p className="boarding-pass__stub-class">HOMECOMING 2026</p>
       <PrintedBarcode />
     </>
   )
@@ -173,7 +173,7 @@ export function BoardingPass({
           </div>
           <div>
             <dt>탑승일 DATE</dt>
-            <dd>21NOV2026</dd>
+            <dd>21 NOV</dd>
           </div>
           <div>
             <dt>탑승시간 BOARDING</dt>
@@ -193,9 +193,9 @@ export function BoardingPass({
         <div className="boarding-pass__scan-row">
           <PrintedBarcode />
           <p>
-            GDG HOME COMING
+            GDGoC DJU
             <br />
-            21 NOV 2026
+            HOMECOMING 2026
           </p>
         </div>
         <footer>EVENT SOUVENIR / NOT VALID FOR AIR TRAVEL</footer>
