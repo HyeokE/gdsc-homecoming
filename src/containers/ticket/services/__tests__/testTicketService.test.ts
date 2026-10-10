@@ -29,15 +29,22 @@ describe('isolated test account', () => {
     }
   });
 
-  test('issuance, normalization, and browser restoration retain ticket identity', async () => {
+  test('a repeated check-in starts fresh while retries within the active flow keep ticket identity', async () => {
     const { service, storage } = fixture();
     expect(await service.checkEmail(' TEST@GMAIL.COM ')).toEqual({ existing: false });
     const first = await service.issue(' TEST@GMAIL.COM ', '테스트', 'issue');
     expect(await service.issue('test@gmail.com', 'Changed', 'retry')).toEqual(first);
     const restoredService = createTestTicketService(storage);
-    expect(await restoredService.checkEmail('test@gmail.com')).toEqual({ existing: true });
     expect(await restoredService.restore('test@gmail.com')).toEqual(first);
+    expect(await restoredService.checkEmail(' TEST@GMAIL.COM ')).toEqual({ existing: false });
+    expect(await restoredService.restore('test@gmail.com')).toBeNull();
+    expect(await restoredService.count(first.destinationId)).toBe(0);
+    const fresh = await restoredService.issue('test@gmail.com', 'Fresh visitor', 'issue');
+    expect(fresh.id).not.toBe(first.id);
+    expect(fresh.passengerName).toBe('Fresh visitor');
+    expect(fresh.revision).toBe(1);
     await expect(service.checkEmail('participant@gmail.com')).rejects.toMatchObject({ kind: 'not-found' });
+    expect(await service.restore('test@gmail.com')).toEqual(fresh);
   });
 
   test('unlimited reissue excludes the current country and retries do not reallocate', async () => {
@@ -84,13 +91,13 @@ describe('isolated test account', () => {
     expect(await service.reissue('test@gmail.com', 'reissue-3')).toEqual(restored);
   });
 
-  test('a malformed test store cannot interfere with normal participant storage', async () => {
+  test('a new test check-in discards malformed history without affecting participants', async () => {
     const { service, storage, data } = fixture();
     data.set(TEST_STORAGE_KEY, 'invalid');
-    await expect(service.checkEmail('test@gmail.com')).rejects.toMatchObject({ kind: 'storage' });
+    expect(await service.checkEmail('test@gmail.com')).toEqual({ existing: false });
     const demoService = createDemoTicketService({ storage });
     expect(await demoService.checkEmail('demo@gdg.example')).toEqual({ existing: false });
-    expect(data.get(TEST_STORAGE_KEY)).toBe('invalid');
+    expect(await service.restore('test@gmail.com')).toBeNull();
   });
 
   test('reset removes test history and counts while preserving other browser data', async () => {

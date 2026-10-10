@@ -16,14 +16,22 @@ export function createTestTicketService(storage: StoragePort) {
     emails: [TEST_ACCOUNT_EMAIL],
     allowUnlimitedReissue: true,
   });
+  function reset() {
+    try {
+      storage.setItem(TEST_STORAGE_KEY, JSON.stringify({ version: 1, records: [] }));
+    } catch {
+      throw new TicketServiceError('storage');
+    }
+  }
   return {
     ...service,
-    reset() {
-      try {
-        storage.setItem(TEST_STORAGE_KEY, JSON.stringify({ version: 1, records: [] }));
-      } catch {
-        throw new TicketServiceError('storage');
+    async checkEmail(email: string) {
+      // A new check-in always starts over; active issue/reissue retries still restore safely.
+      if (isTestAccount(email)) {
+        reset();
       }
+      return service.checkEmail(email);
     },
+    reset,
   };
 }

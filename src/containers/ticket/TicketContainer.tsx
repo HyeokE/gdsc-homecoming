@@ -33,7 +33,8 @@ import type { DemoTicket } from './types/ticket';
 const defaultRuntime = createTicketRuntime();
 function storedEmail(sessionKey: string) {
   try {
-    return sessionStorage.getItem(sessionKey) ?? '';
+    const saved = sessionStorage.getItem(sessionKey) ?? '';
+    return isTestAccount(saved) ? '' : saved;
   } catch {
     return '';
   }
@@ -248,7 +249,11 @@ function TicketContainer({
       const result = checked.existing ? await selectedService.restore(normalized) : null;
       setVerified(normalized);
       try {
-        sessionStorage.setItem(sessionKey, normalized);
+        if (isTestAccount(normalized)) {
+          sessionStorage.removeItem(sessionKey);
+        } else {
+          sessionStorage.setItem(sessionKey, normalized);
+        }
       } catch {
         /* The current tab can continue without session persistence. */
       }
@@ -260,7 +265,7 @@ function TicketContainer({
       setCompanions({ status: 'loading' });
       setEnlarge(false);
       setReissueOpen(false);
-      if (normalized !== verified) {
+      if (normalized !== verified || isTestAccount(normalized)) {
         setNickname('');
       }
       operation.current = null;
