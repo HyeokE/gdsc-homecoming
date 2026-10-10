@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { BoardingPass, BoardingPassStub } from '../../BoardingPass';
 import type { DepartureResult } from '../../../types/departure';
@@ -94,26 +95,10 @@ function TicketPickup({ result, onClose, onContinue, reducedMotion = false }: Ti
           return;
         }
         completed.current = true;
-        const navigate = () => {
-          if (continueRef.current) {
-            continueRef.current();
-          } else {
-            setPhase('detail');
-          }
-        };
-        if (!reduce && document.startViewTransition) {
-          const transition = document.startViewTransition(async () => {
-            navigate();
-            // View transitions freeze rendering while this callback runs; waiting
-            // for animation frames here can deadlock the snapshot. Let the router
-            // commit in the next task instead.
-            await new Promise<void>((resolve) => window.setTimeout(resolve, 50));
-          });
-          // Unsupported snapshots must never interrupt receiving the saved ticket.
-          void transition.ready.catch(() => undefined);
-          void transition.finished.catch(() => undefined);
+        if (continueRef.current) {
+          continueRef.current();
         } else {
-          navigate();
+          setPhase('detail');
         }
       },
       reduce ? 100 : 380,
@@ -217,7 +202,8 @@ function TicketPickup({ result, onClose, onContinue, reducedMotion = false }: Ti
   }
 
   return (
-    <dialog
+    <motion.dialog
+      layoutRoot
       ref={dialogRef}
       className="ticket-presentation"
       aria-label={phase === 'detail' ? '탑승권 상세' : '탑승권 받기'}
@@ -243,7 +229,7 @@ function TicketPickup({ result, onClose, onContinue, reducedMotion = false }: Ti
         <div ref={stageRef} className="ticket-presentation__stage">
           {phase === 'detail' ? (
             <div className="ticket-presentation__detached">
-              <BoardingPassStub result={result} />
+              <BoardingPassStub result={result} stubLayoutId="ticket-stub" />
             </div>
           ) : (
             <div
@@ -257,7 +243,11 @@ function TicketPickup({ result, onClose, onContinue, reducedMotion = false }: Ti
                 } as CSSProperties
               }
             >
-              <BoardingPass result={result} displayMode="expanded" />
+              <BoardingPass
+                result={result}
+                displayMode="expanded"
+                stubLayoutId={reducedMotion ? undefined : 'ticket-stub'}
+              />
               <TicketPaperMesh
                 result={result}
                 height={paperSize.height}
@@ -318,6 +308,6 @@ function TicketPickup({ result, onClose, onContinue, reducedMotion = false }: Ti
           </p>
         </footer>
       </div>
-    </dialog>
+    </motion.dialog>
   );
 }

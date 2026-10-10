@@ -66,7 +66,7 @@ export function PreviewApp() {
           onContinue={() =>
             navigate(PREVIEW_RESULT_PATH, {
               replace: true,
-              state: { boardingTime: presentedResult.boardingTime },
+              state: { boardingTime: presentedResult.boardingTime, enterFromIssuer: true },
             })
           }
         />

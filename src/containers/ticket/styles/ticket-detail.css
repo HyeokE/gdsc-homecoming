@@ -226,3 +226,43 @@ body:has(.ticket-result-page) {
 .ticket-detail__replay > .ticket-detail__button {
   width: 100%;
 }
+
+/* Keep the piece above the fading issuer background while Motion moves it home. */
+.ticket-detail[data-arriving]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #000;
+  pointer-events: none;
+  animation: ticket-arrival-background 620ms ease-out both;
+}
+.ticket-detail[data-arriving] > .ticket-detail__ticket {
+  z-index: 2;
+}
+.ticket-detail[data-arriving] > :not(.ticket-detail__ticket):not(h1) {
+  animation: ticket-arrival-content 360ms 220ms both;
+}
+@keyframes ticket-arrival-background {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ticket-arrival-content {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticket-detail[data-arriving]::before {
+    display: none;
+  }
+  .ticket-detail[data-arriving] > :not(.ticket-detail__ticket):not(h1) {
+    animation: none;
+  }
+}

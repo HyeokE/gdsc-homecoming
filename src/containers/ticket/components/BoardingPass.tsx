@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from 'motion/react';
 import { AirlineBrand } from '@/components/brand';
 import type { DepartureResult } from '../types/departure';
 import '../styles/boarding-pass.css';
@@ -6,6 +7,7 @@ export interface BoardingPassProps {
   result: DepartureResult;
   exportMode?: boolean;
   displayMode?: 'compact' | 'expanded';
+  stubLayoutId?: string;
 }
 
 // Decorative stacked print pattern only; contains no passenger data or QR link.
@@ -93,22 +95,29 @@ export function BoardingPassTearLayer({ result }: Pick<BoardingPassProps, 'resul
 }
 
 /** The passenger's detached right-hand portion of the printed boarding pass. */
-export function BoardingPassStub({ result, exportMode = false }: Pick<BoardingPassProps, 'result' | 'exportMode'>) {
+export function BoardingPassStub({
+  result,
+  exportMode = false,
+  stubLayoutId,
+}: Pick<BoardingPassProps, 'result' | 'exportMode' | 'stubLayoutId'>) {
+  const reducedMotion = useReducedMotion();
   return (
-    <article
+    <motion.article
       className={`boarding-pass boarding-pass--detached ${exportMode ? '' : 'boarding-pass--paper'}`}
       aria-label={`${result.passengerName.toUpperCase()}님의 ${result.city} 출발, 인천행 탑승권 절취 부분`}
+      layoutId={exportMode ? undefined : stubLayoutId}
+      transition={{ layout: { duration: reducedMotion ? 0 : 0.62, ease: [0.22, 0.75, 0.25, 1] } }}
       data-ticket-export
     >
       <div className="boarding-pass__stub">
         <BoardingPassStubContent result={result} />
       </div>
-    </article>
+    </motion.article>
   );
 }
 
 /** Shared by issuer, enlargement and PNG export. Contains no email. */
-export function BoardingPass({ result, exportMode = false, displayMode = 'compact' }: BoardingPassProps) {
+export function BoardingPass({ result, exportMode = false, displayMode = 'compact', stubLayoutId }: BoardingPassProps) {
   return (
     <article
       className={`boarding-pass boarding-pass--${displayMode} ${exportMode ? '' : 'boarding-pass--paper'}`}
@@ -177,9 +186,13 @@ export function BoardingPass({ result, exportMode = false, displayMode = 'compac
         </div>
         <footer>EVENT SOUVENIR / NOT VALID FOR AIR TRAVEL</footer>
       </div>
-      <aside className="boarding-pass__stub" aria-label="탑승권 절취 부분">
+      <motion.aside
+        className="boarding-pass__stub"
+        aria-label="탑승권 절취 부분"
+        layoutId={exportMode ? undefined : stubLayoutId}
+      >
         <BoardingPassStubContent result={result} />
-      </aside>
+      </motion.aside>
     </article>
   );
 }

@@ -1,5 +1,8 @@
+import { useState } from 'react';
+import { LayoutGroup } from 'motion/react';
+import { TicketIssuer } from '../components/TicketIssuer';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { TicketScreen } from '../components/screens/TicketScreen';
 import { departurePreview } from '../fixtures/departurePreview';
 import { destinations } from '../constants/destinations';
@@ -82,4 +85,48 @@ export const ReissueUsed: Story = {
 export const NoAlternative: Story = { args: { reissueStatus: 'unavailable' } };
 export const RestoringResult: Story = {
   args: { reissueStatus: 'checking-result' },
+};
+
+function TearToDetailPreview(args: React.ComponentProps<typeof TicketScreen>) {
+  const [received, setReceived] = useState(false);
+  return (
+    <LayoutGroup>
+      {received ? (
+        <div className="ticket-result-page">
+          <TicketScreen {...args} enterFromIssuer />
+        </div>
+      ) : (
+        <TicketIssuer result={args.ticket} phase="complete" printDurationMs={0} onContinue={() => setReceived(true)} />
+      )}
+    </LayoutGroup>
+  );
+}
+
+export const TearToDetail: Story = {
+  parameters: { canvasMaxWidth: 1000 },
+  render: (args) => <TearToDetailPreview {...args} />,
+  play: async ({ canvasElement, globals }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('button', { name: '탑승권 받기' }));
+    canvas.getByRole('button', { name: '오른쪽 탑승권 뜯기' }).focus();
+    await userEvent.keyboard('{Enter}');
+    const stub = await canvas.findByRole('article', { name: /탑승권 절취 부분$/ });
+    const start = stub.getBoundingClientRect();
+    const target = stub.closest('.ticket-detail__ticket')!.getBoundingClientRect();
+    const reduced = globals.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduced) {
+      // The newly mounted detail piece must start near the torn paper, not jump to its final position.
+      await expect(Math.hypot(start.x - target.x, start.y - target.y)).toBeGreaterThan(10);
+    }
+    await waitFor(
+      () => {
+        const settled = stub.getBoundingClientRect();
+        expect(Math.abs(settled.x - target.x)).toBeLessThan(1);
+        expect(Math.abs(settled.y - target.y)).toBeLessThan(1);
+        expect(Math.abs(settled.width - target.width)).toBeLessThan(1);
+      },
+      { timeout: 2000 },
+    );
+    await expect(canvas.queryByRole('dialog', { name: '탑승권 받기' })).not.toBeInTheDocument();
+  },
 };

@@ -183,7 +183,6 @@
 }
 
 .boarding-pass--detached {
-  view-transition-name: ticket-stub;
   display: block;
   width: 100%;
   border: 0;

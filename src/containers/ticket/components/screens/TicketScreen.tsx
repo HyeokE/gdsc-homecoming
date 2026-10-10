@@ -6,6 +6,7 @@ import { FullTicketDownload } from '../FullTicketDownload';
 import '../../styles/ticket-detail.css';
 export interface TicketScreenProps {
   ticket: DemoTicket;
+  enterFromIssuer?: boolean;
   destination: Destination;
   ticketRef?: Ref<HTMLDivElement>;
   saveStatus?: 'idle' | 'saving' | 'success' | 'error';
@@ -23,6 +24,7 @@ export interface TicketScreenProps {
 }
 export function TicketScreen({
   ticket,
+  enterFromIssuer = false,
   destination,
   ticketRef,
   saveStatus = 'idle',
@@ -41,13 +43,17 @@ export function TicketScreen({
   const reissueBusy = reissueStatus === 'loading' || reissueStatus === 'checking-result';
   const used = ticket.reissueUsed || reissueStatus === 'used';
   return (
-    <section className="ticket-detail-screen ticket-detail" aria-labelledby="ticket-screen-title">
+    <section
+      className="ticket-detail-screen ticket-detail"
+      aria-labelledby="ticket-screen-title"
+      data-arriving={enterFromIssuer || undefined}
+    >
       <h1 id="ticket-screen-title" tabIndex={-1} className="sr-only">
         당신의 탑승권
       </h1>
       <div className="ticket-detail__ticket">
         <div ref={ticketRef} className="ticket-detail-screen__stub" data-ticket-save-region>
-          <BoardingPassStub result={ticket} />
+          <BoardingPassStub result={ticket} stubLayoutId="ticket-stub" />
         </div>
         <button
           type="button"

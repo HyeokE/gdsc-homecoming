@@ -231,7 +231,6 @@
   clip-path: var(--tear-edge);
   border-left-color: transparent;
   animation: ticket-paper-handoff 340ms step-end forwards;
-  view-transition-name: ticket-stub;
 }
 .ticket-presentation[data-phase='released'] .ticket-presentation__mesh {
   animation: ticket-mesh-handoff 340ms step-end forwards;
@@ -260,15 +259,6 @@
     opacity: 0;
   }
 }
-::view-transition-group(ticket-stub) {
-  animation-duration: 520ms;
-  animation-timing-function: cubic-bezier(0.22, 0.75, 0.25, 1);
-}
-::view-transition-old(ticket-stub),
-::view-transition-new(ticket-stub) {
-  height: 100%;
-  animation-duration: 520ms;
-}
 .ticket-presentation[data-reduced-motion] .ticket-presentation__paper-strip {
   transform: none !important;
 }
@@ -288,9 +278,6 @@
   .ticket-presentation .boarding-pass__stub {
     animation-duration: 1ms !important;
     transition: none;
-  }
-  ::view-transition-group(ticket-stub) {
-    animation-duration: 1ms;
   }
 }
 @media (orientation: landscape) and (max-height: 600px) {

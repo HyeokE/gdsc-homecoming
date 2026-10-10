@@ -15,6 +15,8 @@ export { PREVIEW_RESULT_PATH };
 export function PreviewResult() {
   const location = useLocation();
   const state: unknown = location.state;
+  const enterFromIssuer =
+    state && typeof state === 'object' && 'enterFromIssuer' in state && state.enterFromIssuer === true;
   const time = state && typeof state === 'object' && 'boardingTime' in state ? state.boardingTime : undefined;
   const boardingTime = typeof time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : undefined;
   const result = boardingTime ? { ...departurePreview, boardingTime } : departurePreview;
@@ -23,13 +25,13 @@ export function PreviewResult() {
   const destination = getDestination('jp');
   return (
     <main className="ticket-result-page min-h-svh w-full px-page py-8 text-foreground">
-      <section className="ticket-detail mx-auto w-full max-w-mobile">
+      <section className="ticket-detail mx-auto w-full max-w-mobile" data-arriving={enterFromIssuer || undefined}>
         <h1 className="sr-only" tabIndex={-1}>
           당신의 탑승권
         </h1>
         <div className="ticket-detail__ticket">
           <div ref={ref} className="ticket-detail-screen__stub">
-            <BoardingPassStub result={result} />
+            <BoardingPassStub result={result} stubLayoutId="ticket-stub" />
           </div>
           <button
             type="button"

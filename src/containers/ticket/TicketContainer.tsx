@@ -370,7 +370,7 @@ function TicketContainer({
           setTicket({ ...ticket, boardingTime });
         }
         setIsReplaying(false);
-        navigate(ticketResultPath(ticket.id), { replace: true });
+        navigate(ticketResultPath(ticket.id), { replace: true, state: { enterFromIssuer: true } });
       }}
     />
   ) : null;
@@ -378,6 +378,7 @@ function TicketContainer({
     <div className="mx-auto w-full max-w-mobile">
       <TicketScreen
         ticket={ticket}
+        enterFromIssuer={location.state?.enterFromIssuer === true}
         destination={getDestination(ticket.destinationId)}
         ticketRef={ticketRef}
         saveStatus={saveStatus}
