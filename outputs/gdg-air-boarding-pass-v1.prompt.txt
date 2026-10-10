@@ -1,0 +1,29 @@
+Use case: product-mockup
+Asset type: finished GDG Home Coming commemorative airline boarding-pass design, a high-resolution flat front artwork.
+Primary request: Design an exceptionally convincing physical airline boarding pass rebranded as GDG AIR. It should feel like a real airport-issued paper boarding pass with precise utilitarian information design, not a website card or an illustrated poster.
+Composition: ONE single horizontal long rectangular boarding pass, full ticket visible, straight-on perfectly orthographic, no perspective, on a plain charcoal background with small even margins. Ticket aspect ratio approximately 2.9:1, occupies almost all image width. Main coupon left 76%, detachable passenger stub right 24%, fine vertical perforations and tiny notch at both ends of perforation. Crisp corners with only minimal radius. No extra objects or second ticket.
+Design: warm ivory uncoated paper with extremely subtle paper grain, near-black ink, a narrow dark charcoal airline header across both sections. GDG developer chevron mark in blue red yellow green at left of white GDG AIR wordmark. A thin four-segment Google-color stripe along bottom edge. Authentic airline thermal printing typography, clean condensed sans for labels and strong monospaced passenger/flight data. Large bold ICN and NRT establish hierarchy. Restrained small line airplane symbol between codes. Precise thin rules, generous legibility, expertly aligned baseline grid. Premium editorial finish but genuinely airport utilitarian.
+Main coupon text verbatim:
+Header: "GDG AIR" and "BOARDING PASS"
+Small line under header: "HOMECOMING CLASS"
+Passenger label: "PASSENGER NAME"
+Passenger value: "JUNHYEOK / KIM"
+Route codes: "ICN" and "NRT"
+Origin city: "SEOUL / INCHEON"
+Destination city: "TOKYO / NARITA"
+Metadata row: "FLIGHT" "GDG1121" | "DATE" "21 NOV 2026" | "BOARDING" "15:00" | "GATE" "A03"
+Footer: "GDG HOME COMING 2026"
+Tiny footer: "COMMEMORATIVE BOARDING PASS"
+Stub repeats essential data in compact authentic airline layout:
+"GDG AIR"
+"PASSENGER"
+"JUNHYEOK / KIM"
+"ICN > NRT"
+"FLIGHT" "GDG1121"
+"DATE" "21 NOV 2026"
+"BOARDING" "15:00"
+"GATE" "A03"
+At bottom of stub a neat decorative linear barcode and small caption "GDG1121".
+Constraints: all text spelled correctly and sharp. No QR code, no seat number, no added times or invented fields. Only the specified copy. Google developer brand colors used sparingly. No glossy plastic, no gradients, no glow, no 3D perspective, no airport background, no giant travel illustration. Deliver finished designed ticket image, not a design process board.
+
+Generated with the built-in image_gen tool. Concept sample passenger and destination; decorative barcode.

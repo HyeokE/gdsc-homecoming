@@ -1,0 +1,184 @@
+.boarding-pass {
+  --pass-label-size: clamp(0.42rem, 1.6cqi, 0.68rem);
+  --pass-city-size: clamp(0.43rem, 1.65cqi, 0.7rem);
+  --pass-field-size: clamp(0.5rem, 1.95cqi, 0.85rem);
+  --pass-name-size: clamp(0.76rem, 3.1cqi, 1.4rem);
+  --pass-brand-size: clamp(0.7rem, 2.8cqi, 1.2rem);
+  --pass-code-size: clamp(1.5rem, 8.7cqi, 4rem);
+  --pass-stub-size: clamp(1.1rem, 4.9cqi, 2.2rem);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24%;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--ui-ticket-border);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  container-type: inline-size;
+}
+.boarding-pass--paper {
+  box-shadow:
+    0 2px 0 var(--ui-ticket-border),
+    0 4px 0 var(--ui-ticket),
+    0 7px 0 rgb(8 10 12 / 28%);
+}
+.boarding-pass__main {
+  min-width: 0;
+  padding: clamp(8px, 2.8cqi, 24px) clamp(9px, 3.2cqi, 26px)
+    clamp(10px, 3.4cqi, 28px);
+}
+.boarding-pass__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ui-ticket-border);
+  font-size: var(--pass-brand-size);
+  line-height: 1.2;
+}
+.boarding-pass__header span {
+  font-size: var(--pass-label-size);
+  letter-spacing: 0.07em;
+  text-align: right;
+}
+.boarding-pass__route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  margin-block: clamp(6px, 2.2cqi, 20px);
+}
+.boarding-pass__route div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.boarding-pass__route strong {
+  font-size: var(--pass-code-size);
+  line-height: 0.95;
+  letter-spacing: -0.07em;
+}
+.boarding-pass__route span:not(.boarding-pass__arrow) {
+  margin-top: 5px;
+  font-size: var(--pass-city-size);
+  line-height: 1.25;
+  color: var(--ui-ticket-muted);
+  overflow-wrap: anywhere;
+}
+.boarding-pass__arrow {
+  font-size: clamp(0.875rem, 3cqi, 1.5rem);
+  color: var(--ui-ticket-muted);
+}
+.boarding-pass__label {
+  display: block;
+  font-size: var(--pass-label-size);
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  color: var(--ui-ticket-muted);
+}
+.boarding-pass__passenger strong {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: var(--pass-name-size);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.boarding-pass__fields {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: clamp(7px, 2.5cqi, 20px);
+}
+.boarding-pass__fields dt {
+  font-size: var(--pass-label-size);
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+  color: var(--ui-ticket-muted);
+}
+.boarding-pass__fields dd {
+  margin-top: 2px;
+  font-size: var(--pass-field-size);
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.boarding-pass footer {
+  margin-top: clamp(7px, 2.5cqi, 20px);
+  padding-top: clamp(4px, 1.5cqi, 12px);
+  border-top: 1px solid var(--ui-ticket-border);
+  font-family: var(--font-sans);
+  font-size: var(--pass-label-size);
+  line-height: 1.4;
+  color: var(--ui-ticket-muted);
+  overflow-wrap: anywhere;
+}
+.boarding-pass__stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(10px, 3.4cqi, 24px) clamp(7px, 2.5cqi, 18px)
+    clamp(10px, 3.4cqi, 28px);
+  border-left: 1px dashed var(--ui-ticket-border);
+}
+.boarding-pass__stub-code {
+  margin-top: clamp(10px, 3.4cqi, 28px);
+  font-size: var(--pass-stub-size);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+.boarding-pass__stub-gate {
+  margin-top: clamp(14px, 5cqi, 36px);
+}
+.boarding-pass__gate {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--pass-stub-size);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.boarding-pass__stub-note {
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: var(--pass-label-size);
+  line-height: 1.5;
+  color: var(--ui-ticket-muted);
+}
+.boarding-pass__stripe {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 3px;
+  overflow: hidden;
+  border-radius: 0 0 2px 2px;
+}
+
+/* At narrow phone widths, group the printed information more tightly. */
+@container (max-width: 320px) {
+  .boarding-pass__main {
+    padding-block: 7px 8px;
+  }
+  .boarding-pass__route {
+    margin-block: 4px;
+  }
+  .boarding-pass__fields {
+    margin-top: 5px;
+  }
+  .boarding-pass footer {
+    margin-top: 5px;
+    padding-top: 3px;
+  }
+}
+
+/* The horizontal enlargement keeps small printed labels readable. */
+.boarding-pass--expanded {
+  --pass-label-size: clamp(0.875rem, 2cqi, 1rem);
+  --pass-city-size: clamp(0.875rem, 2.2cqi, 1.125rem);
+  --pass-field-size: clamp(1.125rem, 2.8cqi, 1.375rem);
+  --pass-name-size: clamp(1.25rem, 3.3cqi, 1.75rem);
+}

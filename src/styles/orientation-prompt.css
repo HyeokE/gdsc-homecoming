@@ -1,0 +1,34 @@
+.orientation-prompt {
+  width: 100%;
+  min-height: calc(100svh - 130px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-block: 32px;
+  text-align: center;
+}
+.orientation-prompt h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.orientation-prompt h1:focus {
+  outline: none;
+}
+.orientation-prompt p {
+  max-width: 32ch;
+  line-height: 1.6;
+  color: var(--ui-muted);
+}
+.orientation-prompt__hint {
+  font-size: 0.875rem;
+}
+.orientation-prompt__phone {
+  width: 76px;
+  height: 42px;
+  border: 2px solid var(--ui-foreground);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}

@@ -1,0 +1,34 @@
+Use case: product-mockup
+Create a faithful-looking AIRPORT CHECK-IN COUNTER PRINTED PAPER BOARDING PASS for the fictional event airline GDG AIR. The previous design failed because it looked like a souvenir poster with huge ICN/NRT typography and a luxurious black banner. This is a NEW design, completely abandoning those proportions.
+
+Visual target: the mundane authentic utilitarian boarding card handed out at an international airline check-in desk: off-white thin card stock, dense black dot-matrix/thermal type in compact aligned rows, small gray bilingual field labels, understated preprinted airline identity, dominant white paper, practical information rather than decorative graphics. Similar information density and typographic proportions to actual Korean airline paper boarding cards, with original GDG branding and no real airline branding or passenger data.
+
+Output one flat straight-on horizontal paper ticket, aspect ratio about 3:1, very small light gray margin around ticket, whole ticket visible, no tilt, no hands/passport/tabletop props. Main coupon 72%, tear-off passenger coupon 28%, vertical microperforated divider, square paper edges, no large circular ticket cutouts. Header is white, NOT a black band. Small multicolor developer chevrons and "GDG AIR" upper left; "탑승권 BOARDING PASS" modest upper right of main coupon. Only small blue red yellow green strokes next to logo, no rainbow bottom stripe.
+
+Precise layout:
+MAIN COUPON top 16% small logo/header.
+Next row "성명 NAME" label then "KIM/JUNHYEOK" bold monospaced thermal print.
+Following two compact stacked rows: "출발 FROM   SEOUL/INCHEON   ICN" and "도착 TO     TOKYO/NARITA    NRT". Do not make airport codes larger than city names. No airplane illustration, no travel path.
+Following compact table of tiny gray labels and medium black printed values:
+"편명 FLIGHT" = "GDG1121"
+"탑승일 DATE" = "21NOV2026"
+"탑승시간 BOARDING" = "15:00"
+Following row, large but utilitarian "탑승구 GATE" value "A03" on left and "등급 CLASS" value "HOMECOMING" on right. Gate value only 1.5 times body size. No seat field because the event has no assigned seats.
+At lower left a wide short rectangular densely stacked PDF417-style decorative barcode (NOT a one-dimensional supermarket barcode, NOT a QR code). Next to barcode small "GDG HOME COMING" and "21 NOV 2026".
+Very bottom tiny gray "EVENT SOUVENIR / NOT VALID FOR AIR TRAVEL".
+
+PASSENGER STUB repeats using small tightly spaced monochrome thermal-print text:
+Small "GDG AIR" header and "BOARDING PASS".
+"KIM/JUNHYEOK"
+"FROM  ICN SEOUL/INCHEON"
+"TO    NRT TOKYO/NARITA"
+"FLIGHT  GDG1121"
+"DATE    21NOV2026"
+"BOARDING 15:00"
+"GATE    A03"
+"HOMECOMING CLASS"
+Small stacked rectangular PDF417-style decorative barcode at bottom.
+
+All information sits toward upper and middle portions, like preprinted airline paper stock, with pragmatic blank white space at bottom. Subtle black print imperfect density allowed but text must remain highly legible. Tiny Korean labels subordinate to English printed values. No extreme letterspacing. No thick decorative lines, no giant letters, no dramatic shadows, no artificial worn vintage texture, no poster aesthetic, no app aesthetic, no glossy card. Make it look like a REAL boring airport-issued boarding pass rebranded GDG, not a travel-themed graphic designer's fantasy.
+
+Generated with built-in image_gen. Layout reference: https://flight-report.com/en/report/31368/Korean-Air-KE704-Tokyo-NRT-Seoul-ICN/

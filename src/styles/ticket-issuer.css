@@ -1,0 +1,132 @@
+.ticket-issuer {
+  container-type: inline-size;
+  padding-top: 4px;
+}
+.issuer-output {
+  display: grid;
+  grid-template-columns: clamp(82px, 13cqi, 116px) minmax(0, 1fr);
+  align-items: stretch;
+}
+.issuer-machine {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 16px 14px 16px 10px;
+  border: 1px solid var(--ui-board-seam);
+  border-radius: 8px 3px 3px 8px;
+  background: var(--ui-surface);
+  box-shadow: 0 3px 0 var(--ui-board);
+}
+.issuer-machine__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.issuer-machine h1 {
+  font-family: var(--font-mono);
+  font-size: clamp(14px, 2cqi, 18px);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.issuer-machine h1:focus {
+  outline: none;
+}
+.issuer-machine__header p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ui-muted);
+  word-break: keep-all;
+}
+.issuer-machine__slot {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: -4px;
+  width: 9px;
+  border-radius: 2px;
+  background: var(--ui-board);
+  box-shadow:
+    inset 2px 0 0 #080a0c,
+    1px 0 0 var(--ui-border);
+}
+.issuer-paper-window {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 6px 0 10px 8px;
+}
+.issuer-paper-window::after {
+  position: absolute;
+  z-index: 3;
+  top: 6px;
+  bottom: 10px;
+  left: 0;
+  width: 8px;
+  background: rgb(8 10 12 / 35%);
+  content: '';
+  pointer-events: none;
+}
+.issuer-paper {
+  position: relative;
+  width: 100%;
+  will-change: transform;
+}
+.issuer-caption {
+  margin-top: 16px;
+  text-align: center;
+}
+.issuer-caption p {
+  font-size: 18px;
+  font-weight: 600;
+}
+.issuer-caption span {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ui-muted);
+}
+.issuer-continue {
+  display: block;
+  width: min(100%, 360px);
+  margin: 16px auto 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .issuer-paper {
+    will-change: auto;
+  }
+}
+.issuer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px auto 0;
+  max-width: 600px;
+}
+.issuer-footer .issuer-caption {
+  margin-top: 0;
+  text-align: left;
+}
+.issuer-footer .issuer-continue {
+  width: min(42%, 260px);
+  flex-shrink: 0;
+  margin: 0;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .issuer-output {
+    width: min(100%, 600px);
+    margin-inline: auto;
+  }
+}
+@container (max-width: 420px) {
+  .issuer-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .issuer-footer .issuer-continue {
+    width: 100%;
+  }
+}
