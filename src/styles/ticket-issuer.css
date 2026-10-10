@@ -153,8 +153,120 @@
   pointer-events: none;
   content: '';
 }
+.issuer-loading {
+  position: absolute;
+  z-index: 0;
+  inset: var(--issuer-feed-inset) 16px var(--issuer-feed-inset) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: #c4cbd1;
+  font-size: clamp(13px, 1.8cqi, 16px);
+  pointer-events: none;
+}
+.issuer-loading__graphic {
+  position: relative;
+  width: 160px;
+  height: 88px;
+}
+.issuer-loading__slot {
+  position: absolute;
+  z-index: 2;
+  inset: 0 auto 0 0;
+  width: 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  background: var(--ui-board);
+  box-shadow: 2px 0 5px rgb(0 0 0 / 25%);
+}
+.issuer-loading__paper-window {
+  position: absolute;
+  inset: 8px 0 8px 4px;
+  overflow: hidden;
+}
+.issuer-loading__ticket {
+  position: relative;
+  width: 144px;
+  height: 68px;
+  margin-left: 6px;
+  overflow: hidden;
+  border: 1px solid var(--ui-ticket-border);
+  border-radius: 3px;
+  background: var(--ui-ticket);
+  color: var(--ui-ticket-ink);
+  animation: issuer-loading-feed 2s both;
+}
+.issuer-loading__plane {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  width: 22px;
+  height: 22px;
+  transform: rotate(90deg);
+}
+.issuer-loading__ticket-lines {
+  position: absolute;
+  top: 17px;
+  left: 48px;
+  width: 34px;
+  height: 3px;
+  background: var(--ui-ticket-ink);
+  box-shadow: 0 9px 0 var(--ui-ticket-border);
+}
+.issuer-loading__ticket-lines::after {
+  position: absolute;
+  top: 28px;
+  left: -34px;
+  width: 50px;
+  height: 3px;
+  background: var(--ui-ticket-border);
+  content: '';
+}
+.issuer-loading__ticket-stub {
+  position: absolute;
+  inset: 0 0 3px auto;
+  width: 34px;
+  border-left: 1px dashed var(--ui-ticket-border);
+}
+.issuer-loading__ticket-stub::after {
+  position: absolute;
+  inset: 14px 12px;
+  border-inline: 3px solid var(--ui-ticket-ink);
+  content: '';
+}
+.issuer-loading__ticket-stripe {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 3px;
+}
+@keyframes issuer-loading-feed {
+  0%,
+  12% {
+    transform: translateX(-72%);
+  }
+  38% {
+    transform: translateX(-48%);
+  }
+  44% {
+    transform: translateX(-48%);
+  }
+  70% {
+    transform: translateX(-22%);
+  }
+  76% {
+    transform: translateX(-22%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
 .issuer-paper {
   position: relative;
+  z-index: 1;
   width: 100%;
   transform: translateX(0);
 }

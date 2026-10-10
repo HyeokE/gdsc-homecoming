@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import { MotionConfig } from 'motion/react'
 import type { DepartureResult } from './DepartureReveal'
-import type { IssuerPhase } from '../hooks/departureFlow'
+import { PREPARE_DURATION, type IssuerPhase } from '../hooks/departureFlow'
 import { BoardingPass } from './BoardingPass'
 import { TicketPresentation } from './TicketPresentation'
 import '../styles/ticket-issuer.css'
@@ -50,6 +50,39 @@ export function TicketIssuer({
             </div>
           </div>
           <div className="issuer-paper-window" aria-hidden={preparing}>
+            {!complete && (
+              <div className="issuer-loading" aria-hidden="true">
+                <div className="issuer-loading__graphic">
+                  <span className="issuer-loading__slot" />
+                  <div className="issuer-loading__paper-window">
+                    <div
+                      className="issuer-loading__ticket"
+                      style={{ animationDuration: `${PREPARE_DURATION}ms` }}
+                    >
+                      <svg
+                        className="issuer-loading__plane"
+                        viewBox="0 0 24 24"
+                        focusable="false"
+                      >
+                        <path
+                          d="m21 12-7-3V3a2 2 0 0 0-4 0v6l-7 3v3l7-2v5l-3 2v2l5-1 5 1v-2l-3-2v-5l7 2Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      <span className="issuer-loading__ticket-lines" />
+                      <span className="issuer-loading__ticket-stub" />
+                      <span className="issuer-loading__ticket-stripe">
+                        <i className="bg-brand-blue" />
+                        <i className="bg-brand-red" />
+                        <i className="bg-brand-yellow" />
+                        <i className="bg-brand-green" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <span>발권 중입니다</span>
+              </div>
+            )}
             <div
               className="issuer-paper"
               style={
