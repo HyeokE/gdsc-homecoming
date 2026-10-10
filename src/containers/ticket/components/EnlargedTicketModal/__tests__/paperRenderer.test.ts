@@ -124,6 +124,25 @@ describe('continuous paper geometry', () => {
 });
 
 describe('paper orientation and fallback', () => {
+  test('back UVs make back lettering upright and unmirrored after a vertical-axis half turn', () => {
+    const geometry = createPaperGeometry(800, 300, flat);
+    const rotation = paperRotation({ ...flat, tiltY: 180 });
+    let maximumError = 0;
+    for (let vertex = 0; vertex < geometry.positions.length / 3; vertex++) {
+      const x = geometry.positions[vertex * 3];
+      const y = geometry.positions[vertex * 3 + 1];
+      const screenX = rotation[0] * x + rotation[3] * y;
+      const screenY = rotation[1] * x + rotation[4] * y;
+      maximumError = Math.max(
+        maximumError,
+        Math.abs(geometry.backUvs[vertex * 2] - (screenX / 800 + 0.5)),
+        Math.abs(geometry.backUvs[vertex * 2 + 1] - (screenY / 300 + 0.5)),
+      );
+    }
+    expect(maximumError).toBeLessThan(0.000001);
+    const curled = createPaperGeometry(800, 300, { ...flat, grabX: 1, bendX: 0.8 });
+    expect(Array.from(curled.backUvs)).toEqual(Array.from(geometry.backUvs));
+  });
   test('portrait roll rotates the original ticket plane by 90 degrees without scaling it', () => {
     const rotation = paperRotation({ ...flat, roll: 90 });
     expect(rotation[0]).toBeCloseTo(0, 6);
