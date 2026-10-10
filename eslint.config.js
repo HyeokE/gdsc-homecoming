@@ -7,7 +7,14 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores(['dist', 'storybook-static', 'coverage', '.husky/_']),
+  globalIgnores([
+    'dist',
+    'storybook-static',
+    'coverage',
+    '.husky/_',
+    'functions/lib',
+    '.firebase',
+  ]),
   {
     files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
     extends: [js.configs.recommended],
@@ -24,6 +31,10 @@ export default defineConfig([
   },
   {
     files: ['*.{js,mjs,cjs,ts}'],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ['functions/**/*.{ts,js,mjs}', 'scripts/**/*.mjs', 'tests/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
   {

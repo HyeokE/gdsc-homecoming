@@ -21,7 +21,14 @@ test('direct preview session cannot resolve the issuer route before confirmation
     reducedMotion: false,
   })
   expect(getPreviewRoute(confirmed)).toBe(PREVIEW_ROUTES.issuer)
-  expect(confirmed).toMatchObject({ phase: 'printing' })
+  expect(confirmed).toMatchObject({ phase: 'preparing' })
+  expect(reduce(confirmed, { type: 'printed', runId: 1 })).toBe(confirmed)
+  const printing = reduce(confirmed, { type: 'print', runId: 1 })
+  expect(getPreviewRoute(printing)).toBe(PREVIEW_ROUTES.issuer)
+  expect(printing).toMatchObject({ phase: 'printing' })
+  const complete = reduce(printing, { type: 'printed', runId: 1 })
+  expect(getPreviewRoute(complete)).toBe(PREVIEW_ROUTES.issuer)
+  expect(complete).toMatchObject({ phase: 'complete' })
 })
 
 test('replay starts a fresh departure route and stale print completion cannot affect it', () => {
@@ -42,5 +49,6 @@ test('replay starts a fresh departure route and stale print completion cannot af
   })
   expect(getPreviewRoute(replay)).toBe(PREVIEW_ROUTES.departure)
   expect(reduce(replay, { type: 'printed', runId: 1 })).toBe(replay)
+  expect(reduce(replay, { type: 'print', runId: 1 })).toBe(replay)
   expect(getPreviewRoute({ screen: 'idle' })).toBe(PREVIEW_ROUTES.entry)
 })

@@ -1,10 +1,12 @@
-import { MotionConfig, motion } from 'motion/react'
+import { useState, type CSSProperties } from 'react'
+import { MotionConfig } from 'motion/react'
 import type { DepartureResult } from './DepartureReveal'
+import type { IssuerPhase } from '../hooks/departureFlow'
 import { BoardingPass } from './BoardingPass'
-import { primaryButtonClass } from './screens/InputScreen'
+import { TicketPresentation } from './TicketPresentation'
 import '../styles/ticket-issuer.css'
 
-export type TicketIssuerPhase = 'printing' | 'complete'
+export type TicketIssuerPhase = IssuerPhase
 
 interface TicketIssuerProps {
   result: DepartureResult
@@ -21,9 +23,11 @@ export function TicketIssuer({
   printDurationMs,
   reducedMotion = false,
   onContinue,
-  continueLabel = '탑승권 보기',
+  continueLabel = '탑승권 받기',
 }: TicketIssuerProps) {
+  const [presenting, setPresenting] = useState(false)
   const complete = phase === 'complete'
+  const preparing = phase === 'preparing'
 
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
@@ -33,60 +37,64 @@ export function TicketIssuer({
         data-reduced-motion={reducedMotion}
         aria-labelledby="issuer-title"
       >
-        <div className="issuer-output">
-          <header className="issuer-machine">
-            <div className="issuer-machine__header">
-              <h1 id="issuer-title" tabIndex={-1}>
-                GDG AIR
-              </h1>
-              <p>{complete ? '출력 완료' : '탑승권 출력 중'}</p>
+        <h1 id="issuer-title" tabIndex={-1} className="sr-only">
+          탑승권 발권
+        </h1>
+        <div className="issuer-scene">
+          <div className="issuer-machine" aria-hidden="true">
+            <span className="issuer-machine__screw issuer-machine__screw--left" />
+            <span className="issuer-machine__screw issuer-machine__screw--right" />
+            <span className="issuer-machine__light" />
+            <div className="issuer-slot">
+              <span className="issuer-slot__roller" />
             </div>
-            <div className="issuer-machine__slot" aria-hidden="true" />
-          </header>
-          <div className="issuer-paper-window">
-            <motion.div
+          </div>
+          <div className="issuer-paper-window" aria-hidden={preparing}>
+            <div
               className="issuer-paper"
-              initial={
-                reducedMotion || complete ? false : { x: 'calc(-100% - 8px)' }
-              }
-              animate={{ x: '0%' }}
-              transition={{
-                duration: reducedMotion ? 0 : printDurationMs / 1000,
-                ease: [0.16, 0.12, 0.76, 1],
-              }}
-              aria-label={
-                complete ? '출력된 기념 탑승권' : '출력 중인 기념 탑승권'
+              style={
+                {
+                  '--issuer-feed-duration': `${printDurationMs}ms`,
+                } as CSSProperties
               }
             >
-              <BoardingPass result={result} />
-            </motion.div>
+              <div className="issuer-paper__sheet">
+                <BoardingPass result={result} />
+                <span className="issuer-paper__lighting" aria-hidden="true" />
+                {complete && (
+                  <button
+                    type="button"
+                    onClick={() => setPresenting(true)}
+                    className="issuer-paper__open"
+                    aria-label="탑승권 받기"
+                    aria-haspopup="dialog"
+                  />
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="issuer-footer">
-          <div className="issuer-caption">
-            <p>{complete ? '탑승권이 나왔어요' : '잠시만 기다려주세요'}</p>
-            <span>
-              {complete
-                ? '홈커밍에서 만나요.'
-                : '기념 탑승권을 출력하고 있어요.'}
-            </span>
-          </div>
-          {complete && onContinue && (
-            <button
-              type="button"
-              onClick={onContinue}
-              className={`${primaryButtonClass} issuer-continue`}
-            >
-              {continueLabel}
-            </button>
-          )}
         </div>
         <p role="status" className="sr-only" aria-atomic="true">
           {complete
-            ? `${result.passengerName}님의 ${result.countryLabel ?? result.country}행 기념 탑승권 출력이 완료됐습니다.`
-            : '탑승권을 출력하고 있습니다.'}
+            ? `${result.passengerName}님의 ${result.countryLabel ?? result.country}행 탑승권이 나왔습니다. 티켓을 눌러 확인하세요.`
+            : preparing
+              ? '발권 중입니다.'
+              : '탑승권을 출력하고 있습니다.'}
         </p>
       </section>
+      <TicketPresentation
+        open={presenting}
+        result={result}
+        ticketId={
+          'id' in result && typeof result.id === 'string'
+            ? result.id
+            : undefined
+        }
+        onClose={() => setPresenting(false)}
+        onContinue={onContinue}
+        continueLabel={continueLabel}
+        reducedMotion={reducedMotion}
+      />
     </MotionConfig>
   )
 }

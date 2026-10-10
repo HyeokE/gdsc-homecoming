@@ -15,6 +15,7 @@ import { NicknameScreen } from './components/screens/NicknameScreen'
 import { TicketScreen } from './components/screens/TicketScreen'
 import { EnlargedTicketModal } from './components/EnlargedTicketModal'
 import { ReissueConfirmModal } from './components/ReissueConfirmModal'
+import { primaryButtonClass } from './components/screens/InputScreen'
 import type {
   InputScreenError,
   InputScreenStatus,
@@ -24,24 +25,26 @@ import { PRINT_DURATION } from './hooks/departureFlow'
 import { useDepartureReveal } from './hooks/useDepartureReveal'
 import { reissueDisplayState } from './hooks/ticketOperationState'
 import type { ReissueActivity } from './hooks/ticketOperationState'
-import { guardedTicketRoute } from './routes/ticketRoutes'
 import {
-  createDemoTicketService,
-  TicketServiceError,
-} from './services/demoTicketService'
+  guardedTicketRoute,
+  restoredTicketRoute,
+  ticketIdFromResultPath,
+  ticketMatchesResultRoute,
+  ticketResultPath,
+  TICKET_ROUTES,
+} from './routes/ticketRoutes'
+import { TicketServiceError } from './services/ticketServiceError'
+import {
+  createTicketRuntime,
+  type TicketRuntime,
+} from './services/ticketService'
 import { saveTicketImage } from './services/saveTicketImage'
 import type { DemoTicket } from './types/ticket'
 
-const SESSION_KEY = 'gdg-demo-participant'
-const service = createDemoTicketService({
-  storage: {
-    getItem: (key) => localStorage.getItem(key),
-    setItem: (key, value) => localStorage.setItem(key, value),
-  },
-})
-function storedEmail() {
+const defaultRuntime = createTicketRuntime()
+function storedEmail(sessionKey: string) {
   try {
-    return sessionStorage.getItem(SESSION_KEY) ?? ''
+    return sessionStorage.getItem(sessionKey) ?? ''
   } catch {
     return ''
   }
@@ -60,9 +63,13 @@ function inputError(error: unknown): InputScreenError {
         ? '신청 내역을 찾을 수 없어요. 이메일을 다시 확인해주세요.'
         : kind === 'uncertain'
           ? '발급 결과를 아직 확인하지 못했어요. 다시 시도하면 저장된 결과부터 확인해요.'
-          : kind === 'capacity'
-            ? '현재 발급 가능한 자리가 없어요. 잠시 후 다시 확인해주세요.'
-            : '연결하지 못했어요. 입력한 내용은 유지돼요. 다시 시도해주세요.',
+          : kind === 'not-configured'
+            ? '발권 서비스가 아직 준비되지 않았어요. 행사 운영진에게 문의해주세요.'
+            : kind === 'invalid-input'
+              ? '입력한 내용을 확인하고 다시 시도해주세요.'
+              : kind === 'capacity'
+                ? '현재 발급 가능한 자리가 없어요. 잠시 후 다시 확인해주세요.'
+                : '연결하지 못했어요. 입력한 내용은 유지돼요. 다시 시도해주세요.',
   }
 }
 function IssuingFlow({
@@ -74,8 +81,15 @@ function IssuingFlow({
 }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { flow, confirm, reducedMotion, rolling, needsOrientation } =
-    useDepartureReveal(ticket)
+  const {
+    flow,
+    confirm,
+    reducedMotion,
+    rolling,
+    needsOrientation,
+    userRowIndex,
+    setRowCapacity,
+  } = useDepartureReveal(ticket)
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       document
@@ -98,6 +112,8 @@ function IssuingFlow({
         <DepartureReveal
           result={ticket}
           phase={reducedMotion ? 'ready' : flow.phase}
+          userRowIndex={userRowIndex}
+          onRowCapacity={setRowCapacity}
           rolling={rolling}
           reducedMotion={reducedMotion}
           onConfirm={() => {
@@ -117,14 +133,18 @@ function IssuingFlow({
     </section>
   )
 }
-function App() {
+function App({ runtime = defaultRuntime }: { runtime?: TicketRuntime }) {
+  const { service, sessionKey, mode } = runtime
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState(storedEmail)
+  const [email, setEmail] = useState(() => storedEmail(sessionKey))
+  const requestedResultPath = useRef(
+    ticketIdFromResultPath(location.pathname) !== null ? location.pathname : '',
+  )
   const [verified, setVerified] = useState<string | null>(null)
   const [nickname, setNickname] = useState('')
   const [ticket, setTicket] = useState<DemoTicket | null>(null)
-  const [booting, setBooting] = useState(() => Boolean(storedEmail()))
+  const [booting, setBooting] = useState(() => Boolean(storedEmail(sessionKey)))
   const [status, setStatus] = useState<InputScreenStatus>('idle')
   const [error, setError] = useState<InputScreenError>()
   const busy = useRef(false)
@@ -161,7 +181,7 @@ function App() {
     // Only an initial saved session enters booting. Route navigation must never
     // restore over an explicit issue/reissue or restart its reveal/print flow.
     if (!booting) return
-    const saved = storedEmail()
+    const saved = storedEmail(sessionKey)
     if (!saved) return
     let active = true
     service
@@ -171,7 +191,11 @@ function App() {
         setVerified(saved)
         setTicket(result)
         setBooting(false)
-        navigate(result ? '/ticket' : '/nickname', { replace: true })
+        navigate(
+          restoredTicketRoute(requestedResultPath.current, result?.id ?? null),
+          { replace: true },
+        )
+        requestedResultPath.current = ''
       })
       .catch((err) => {
         if (active) {
@@ -183,7 +207,7 @@ function App() {
     return () => {
       active = false
     }
-  }, [booting, navigate])
+  }, [booting, navigate, service, sessionKey])
   useEffect(() => {
     if (!ticket) return
     let active = true
@@ -198,7 +222,7 @@ function App() {
     return () => {
       active = false
     }
-  }, [ticket, countAttempt])
+  }, [ticket, countAttempt, service])
   async function checkEmail() {
     if (busy.current) return
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -215,7 +239,7 @@ function App() {
       const result = checked.existing ? await service.restore(normalized) : null
       setVerified(normalized)
       try {
-        sessionStorage.setItem(SESSION_KEY, normalized)
+        sessionStorage.setItem(sessionKey, normalized)
       } catch {
         /* The current tab can continue without session persistence. */
       }
@@ -231,7 +255,10 @@ function App() {
       if (normalized !== verified) setNickname('')
       operation.current = null
       uncertain.current = false
-      navigate(result ? '/ticket' : '/nickname')
+      navigate(
+        restoredTicketRoute(requestedResultPath.current, result?.id ?? null),
+      )
+      requestedResultPath.current = ''
     } catch (err) {
       setError(inputError(err))
     } finally {
@@ -358,9 +385,14 @@ function App() {
       if (request === saveRequest.current) saving.current = false
     }
   }
-  const guard = guardedTicketRoute(location.pathname, verified, Boolean(ticket))
+  const guard = guardedTicketRoute(
+    location.pathname,
+    verified,
+    ticket?.id ?? null,
+  )
+  const isResultRoute = ticketIdFromResultPath(location.pathname) !== null
   const ticketView = ticket ? (
-    <>
+    <div className="mx-auto w-full max-w-mobile">
       <TicketScreen
         ticket={ticket}
         destination={getDestination(ticket.destinationId)}
@@ -396,17 +428,20 @@ function App() {
         }}
         onConfirm={() => void reissue()}
       />
-    </>
+    </div>
   ) : null
   return (
     <main
       tabIndex={-1}
-      className={`mx-auto flex min-h-svh w-full flex-col items-start bg-canvas py-4 text-foreground ${['/departure', '/issuer'].includes(location.pathname) && !booting ? 'max-w-[960px] px-page' : 'max-w-mobile px-4'}`}
+      className={`mx-auto flex min-h-svh w-full flex-col items-start py-4 text-foreground ${isResultRoute && !booting ? 'max-w-none bg-black px-page' : location.pathname === '/issuer' && !booting ? 'max-w-none bg-canvas px-0' : location.pathname === '/departure' && !booting ? 'max-w-[960px] bg-canvas px-page' : 'max-w-mobile bg-canvas px-4'}`}
     >
-      <p className="mb-4 text-caption text-muted">
-        데모 · 예시 이메일의 탑승권만 이 브라우저에 저장돼요. 실제 행사 발권은
-        아닙니다.
-      </p>
+      {mode !== 'firebase' && (
+        <p className="mb-4 text-caption text-muted">
+          {mode === 'demo'
+            ? '데모 · 예시 이메일의 탑승권만 이 브라우저에 저장돼요. 실제 행사 발권은 아닙니다.'
+            : '테스트 · Firebase 에뮬레이터에 저장돼요. 실제 행사 발권은 아닙니다.'}
+        </p>
+      )}
       {booting ? (
         <EmailScreen
           value={email}
@@ -415,7 +450,7 @@ function App() {
           onBack={() => {}}
           status="checking-result"
           disabled
-          demoEmail="demo@gdg.example"
+          demoEmail={mode === 'demo' ? 'demo@gdg.example' : undefined}
         />
       ) : guard !== location.pathname ? (
         <Navigate to={guard} replace />
@@ -445,7 +480,7 @@ function App() {
                 onBack={() => navigate('/')}
                 status={status}
                 error={error}
-                demoEmail="demo@gdg.example"
+                demoEmail={mode === 'demo' ? 'demo@gdg.example' : undefined}
               />
             }
           />
@@ -475,7 +510,9 @@ function App() {
                 <IssuingFlow
                   key={`${ticket.id}:${ticket.revision}`}
                   ticket={ticket}
-                  onTicket={() => navigate('/ticket', { replace: true })}
+                  onTicket={() =>
+                    navigate(ticketResultPath(ticket.id), { replace: true })
+                  }
                 />
               ) : null
             }
@@ -487,12 +524,44 @@ function App() {
                 <IssuingFlow
                   key={`${ticket.id}:${ticket.revision}`}
                   ticket={ticket}
-                  onTicket={() => navigate('/ticket', { replace: true })}
+                  onTicket={() =>
+                    navigate(ticketResultPath(ticket.id), { replace: true })
+                  }
                 />
               ) : null
             }
           />
-          <Route path="/ticket" element={ticketView} />
+          <Route
+            path={TICKET_ROUTES.result}
+            element={
+              ticketMatchesResultRoute(
+                location.pathname,
+                ticket?.id ?? null,
+              ) ? (
+                ticketView
+              ) : (
+                <section className="w-full py-8">
+                  <h1 tabIndex={-1} className="text-title font-semibold">
+                    탑승권을 찾을 수 없어요
+                  </h1>
+                  <p className="mt-3 text-body text-muted">
+                    현재 확인한 이메일의 탑승권과 주소가 일치하지 않아요.
+                    탑승권을 발급한 이메일로 다시 확인해주세요.
+                  </p>
+                  <button
+                    type="button"
+                    className={`${primaryButtonClass} mt-6`}
+                    onClick={() => {
+                      requestedResultPath.current = location.pathname
+                      navigate('/email')
+                    }}
+                  >
+                    이메일 다시 확인
+                  </button>
+                </section>
+              )
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}

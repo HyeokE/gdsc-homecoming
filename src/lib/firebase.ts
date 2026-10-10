@@ -15,7 +15,7 @@ const configVariables = {
   appId: 'VITE_FIREBASE_APP_ID',
 } as const
 
-type FirebaseEnvironment = Readonly<Record<string, string | undefined>>
+export type FirebaseEnvironment = Readonly<Record<string, string | undefined>>
 
 export type FirebaseClientState =
   | { status: 'not-configured'; missingVariables: string[] }
@@ -27,8 +27,21 @@ export type FirebaseClientState =
  * SDK/configuration errors propagate to the caller instead of becoming previews.
  */
 export function initializeFirebaseClient(
-  environment: FirebaseEnvironment = import.meta.env,
+  environment: FirebaseEnvironment = import.meta.env ?? {},
 ): FirebaseClientState {
+  if (environment.VITE_USE_FIREBASE_EMULATORS === 'true') {
+    // A demo project cannot address live Firebase resources. Keep its app and
+    // session separate even when this workspace has a real Web app config.
+    const app = initializeApp(
+      {
+        projectId: 'demo-gdg-homecoming',
+        apiKey: 'demo-emulator-key',
+        appId: 'demo-gdg-homecoming-web',
+      },
+      'gdg-homecoming-emulator',
+    )
+    return { status: 'initialized', app }
+  }
   const missingVariables = Object.values(configVariables).filter(
     (variable) => !environment[variable]?.trim(),
   )

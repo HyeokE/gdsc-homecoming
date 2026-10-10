@@ -7,7 +7,11 @@ import {
   useSyncExternalStore,
 } from 'react'
 import type { DepartureResult } from '../components/DepartureReveal'
-import { PRINT_DURATION, departureFlowReducer } from './departureFlow'
+import {
+  PREPARE_DURATION,
+  PRINT_DURATION,
+  departureFlowReducer,
+} from './departureFlow'
 import { createRollingPlan, rollingStateAt } from './orderedWheel'
 
 function useMediaQuery(query: string) {
@@ -26,7 +30,15 @@ function useMediaQuery(query: string) {
   )
 }
 
-export function useDepartureReveal(result: DepartureResult) {
+export function useDepartureReveal(
+  result: DepartureResult,
+  fixedRowSeed?: number,
+) {
+  const [rowSeed] = useState(() => fixedRowSeed ?? Math.random())
+  const [rowSelection, setRowSelection] = useState<{
+    runId: number
+    index: number
+  } | null>(null)
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const isLandscape = useMediaQuery('(orientation: landscape)')
   const plan = useMemo(() => createRollingPlan(result), [result])
@@ -41,6 +53,22 @@ export function useDepartureReveal(result: DepartureResult) {
         landscape: isLandscape,
       },
     ),
+  )
+  const runId = flow.screen === 'idle' ? 0 : flow.runId
+  const setRowCapacity = useCallback(
+    (count: number) => {
+      setRowSelection((previous) =>
+        previous?.runId === runId
+          ? previous
+          : {
+              runId,
+              index: Math.floor(
+                ((rowSeed + runId * 0.61803398875) % 1) * Math.max(1, count),
+              ),
+            },
+      )
+    },
+    [runId, rowSeed],
   )
   const revealStart =
     flow.screen === 'reveal' && flow.pausedAt === null ? flow.startedAt : null
@@ -58,9 +86,13 @@ export function useDepartureReveal(result: DepartureResult) {
     if (revealStart === null || reducedMotion) return
     let frame = 0
     let active = true
+    let lastUpdate = 0
     const tick = (now: number) => {
       if (!active) return
-      setClock(now)
+      if (now - lastUpdate >= 30 || now >= revealStart + plan.readyAt) {
+        setClock(now)
+        lastUpdate = now
+      }
       if (now < revealStart + plan.readyAt) frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -98,18 +130,24 @@ export function useDepartureReveal(result: DepartureResult) {
   }, [flow, plan, reducedMotion])
 
   useEffect(() => {
-    if (flow.screen !== 'issuer') return
-    if (flow.phase !== 'printing') return
-    const deadline = flow.printingStartedAt + PRINT_DURATION
+    if (flow.screen !== 'issuer' || flow.phase === 'complete') return
+    const preparing = flow.phase === 'preparing'
+    const deadline =
+      flow.printingStartedAt +
+      PREPARE_DURATION +
+      (preparing || reducedMotion ? 0 : PRINT_DURATION)
     const timer = window.setTimeout(
-      () => dispatch({ type: 'printed', runId: flow.runId }),
-      reducedMotion ? 0 : Math.max(0, deadline - performance.now()),
+      () =>
+        dispatch({ type: preparing ? 'print' : 'printed', runId: flow.runId }),
+      Math.max(0, deadline - performance.now()),
     )
     return () => window.clearTimeout(timer)
   }, [flow, reducedMotion])
 
   return {
     flow,
+    userRowIndex: rowSelection?.runId === runId ? rowSelection.index : 0,
+    setRowCapacity,
     reducedMotion,
     needsOrientation,
     isLandscape,

@@ -19,7 +19,7 @@
   padding: 4px 0 12px;
 }
 .ticket-enlarged > .boarding-pass {
-  width: 720px;
+  width: 1080px;
   box-shadow: none;
 }
 @media (max-height: 450px) {

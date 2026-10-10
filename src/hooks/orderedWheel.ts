@@ -5,9 +5,9 @@ import type {
 import type { RollingCell, RollingState } from '../types/rolling'
 
 export const ROLLING_TIMING = {
-  flipMs: 60,
-  finalFlipMs: 110,
-  slowSteps: 6,
+  flipMs: 110,
+  finalFlipMs: 180,
+  slowSteps: 3,
   staggerMs: 30,
   labelHoldMs: 280,
   layoutMs: 650,
@@ -45,7 +45,7 @@ function makeRow(value: string, startAt: number): CellPlan[] {
         : /^\d$/.test(target)
           ? DIGITS
           : ''
-    const steps = wheel ? wheel.length + wheel.indexOf(target) : 0
+    const steps = wheel ? wheel.indexOf(target) + 1 : 0
     const durations = Array.from({ length: steps }, (_, step) =>
       step >= steps - ROLLING_TIMING.slowSteps
         ? ROLLING_TIMING.finalFlipMs
@@ -76,7 +76,7 @@ export function createRollingPlan(result: DepartureResult): RollingPlan {
     gate: makeRow(result.gate, detailStart + 200),
   }
   const readyAt =
-    Math.max(6000, ...Object.values(rows).map(rowEnd)) +
+    Math.max(6000, rowEnd(country), rowEnd(rows.gate)) +
     ROLLING_TIMING.readyHoldMs
   return {
     rows,
@@ -108,8 +108,8 @@ function cellAt(
   if (!cell.wheel || reducedMotion || elapsed >= cell.endAt) return settled()
   if (elapsed < cell.startAt)
     return {
-      current: cell.wheel[0],
-      next: cell.wheel[0],
+      current: ' ',
+      next: ' ',
       stepId: `${id}:waiting`,
       isFlipping: false,
       durationMs: 0,
@@ -120,8 +120,8 @@ function cellAt(
     const durationMs = cell.durations[step]
     if (elapsed < at + durationMs) {
       return {
-        current: cell.wheel[step % cell.wheel.length],
-        next: cell.wheel[(step + 1) % cell.wheel.length],
+        current: step === 0 ? ' ' : cell.wheel[step - 1],
+        next: cell.wheel[step],
         stepId: `${id}:${step}`,
         isFlipping: true,
         durationMs,
@@ -141,7 +141,12 @@ export function rollingStateAt(
 ): RollingState {
   const row = (name: RowName) =>
     plan.rows[name].map((cell, index) =>
-      cellAt(cell, elapsed, `${runId}:${name}:${index}`, reducedMotion),
+      cellAt(
+        cell,
+        elapsed,
+        `${runId}:${name}:${index}`,
+        reducedMotion || elapsed >= plan.readyAt,
+      ),
     )
   return {
     country: row('country'),
@@ -149,7 +154,10 @@ export function rollingStateAt(
     airport: row('airport'),
     gate: row('gate'),
     countrySettled: reducedMotion || elapsed >= plan.countryEnd,
-    airportSettled: reducedMotion || elapsed >= rowEnd(plan.rows.airport),
+    airportSettled:
+      reducedMotion ||
+      elapsed >= plan.readyAt ||
+      elapsed >= rowEnd(plan.rows.airport),
     layoutDurationMs: ROLLING_TIMING.layoutMs,
   }
 }

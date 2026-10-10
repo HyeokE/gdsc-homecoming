@@ -4,25 +4,34 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, fireEvent, userEvent, waitFor, within } from 'storybook/test'
 import App from '../App'
 import { DEMO_STORAGE_KEY } from '../services/demoTicketService'
+import { createTicketRuntime } from '../services/ticketService'
+
+const demoRuntime = createTicketRuntime({ VITE_TICKET_SERVICE: 'demo' })
 
 let restoreDemoStorage = () => {}
 
-function RouteReadback() {
+function RouteReadback({ onRemount }: { onRemount: (path: string) => void }) {
   const location = useLocation()
-  return <output aria-label="현재 경로">{location.pathname}</output>
-}
-function AppRegression() {
-  const [mount, setMount] = useState(0)
   return (
     <>
-      <button onClick={() => setMount((value) => value + 1)}>
+      <output aria-label="현재 경로">{location.pathname}</output>
+      <button onClick={() => onRemount(location.pathname)}>
         앱 새로 마운트
       </button>
-      <MemoryRouter key={mount} initialEntries={['/']}>
-        <RouteReadback />
-        <App />
-      </MemoryRouter>
     </>
+  )
+}
+function AppRegression() {
+  const [mount, setMount] = useState({ key: 0, path: '/' })
+  return (
+    <MemoryRouter key={mount.key} initialEntries={[mount.path]}>
+      <RouteReadback
+        onRemount={(path) =>
+          setMount((value) => ({ key: value.key + 1, path }))
+        }
+      />
+      <App runtime={demoRuntime} />
+    </MemoryRouter>
   )
 }
 const meta = {
@@ -55,6 +64,7 @@ const meta = {
 } satisfies Meta<typeof AppRegression>
 export default meta
 export const IssueThenRestore: StoryObj<typeof meta> = {
+  globals: { viewport: { value: 'mobile390', isRotated: true } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     try {
@@ -79,11 +89,11 @@ export const IssueThenRestore: StoryObj<typeof meta> = {
         ),
       )
       await expect(
-        canvas.queryByRole('region', { name: 'GDG AIR' }),
+        canvas.queryByRole('region', { name: '탑승권 발권' }),
       ).not.toBeInTheDocument()
       const confirm = await canvas.findByRole(
         'button',
-        { name: '확인했어요' },
+        { name: /.+ 발권하기$/ },
         { timeout: 12000 },
       )
       await expect(canvas.getByLabelText('현재 경로')).toHaveTextContent(
@@ -91,16 +101,57 @@ export const IssueThenRestore: StoryObj<typeof meta> = {
       )
       await expect(confirm).toBeEnabled()
       await expect(
-        canvas.queryByRole('region', { name: 'GDG AIR' }),
+        canvas.queryByRole('region', { name: '탑승권 발권' }),
       ).not.toBeInTheDocument()
+      await userEvent.click(confirm)
+      await waitFor(() =>
+        expect(canvas.getByLabelText('현재 경로')).toHaveTextContent('/issuer'),
+      )
+      await expect(
+        canvas.getByRole('region', { name: '탑승권 발권' }),
+      ).toHaveAttribute('data-phase', 'preparing')
+      const pickup = await canvas.findByRole(
+        'button',
+        { name: '탑승권 받기' },
+        { timeout: 6000 },
+      )
+      await userEvent.click(pickup)
+      const notice = within(
+        await canvas.findByRole('dialog', { name: '탑승권 받기' }),
+      )
+      await expect(notice.getByText('이제 세로로 돌려도 돼요')).toBeVisible()
+      await expect(canvas.getByLabelText('현재 경로')).toHaveTextContent(
+        '/issuer',
+      )
+      const tearHandle = notice.getByRole('button', {
+        name: '오른쪽 탑승권 뜯기',
+      })
+      tearHandle.focus()
+      await userEvent.keyboard('{Enter}')
+      await waitFor(
+        () =>
+          expect(canvas.getByLabelText('현재 경로')).toHaveTextContent(
+            /^\/user\/result\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+          ),
+        { timeout: 3000 },
+      )
+      const resultPath = canvas.getByLabelText('현재 경로').textContent
+      await expect(
+        canvas.getByRole('heading', { name: '당신의 탑승권' }),
+      ).toBeInTheDocument()
       await userEvent.click(
         canvas.getByRole('button', { name: '앱 새로 마운트' }),
       )
       await waitFor(() =>
-        expect(canvas.getByLabelText('현재 경로')).toHaveTextContent('/ticket'),
+        expect(
+          canvas.getByRole('heading', { name: '당신의 탑승권' }),
+        ).toBeInTheDocument(),
+      )
+      await expect(canvas.getByLabelText('현재 경로').textContent).toBe(
+        resultPath,
       )
       await expect(
-        canvas.getByRole('heading', { name: '당신의 탑승권' }),
+        canvas.getByRole('button', { name: '탑승권 이미지 저장' }),
       ).toBeVisible()
     } finally {
       restoreDemoStorage()

@@ -79,7 +79,7 @@ export const destinations: readonly Destination[] = [
   {
     id: 'gb',
     name: '영국',
-    wheelLabel: 'UNITED KINGDOM',
+    wheelLabel: 'UK',
     city: 'LONDON / HEATHROW',
     airportCode: 'LHR',
     keywords: ['체크', '코트', '부츠'],

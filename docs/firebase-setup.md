@@ -1,86 +1,114 @@
-# Firebase 연결 설정
+# Firebase 연결
 
-확인일: 2026-10-10. 로그인된 Aside Firebase 콘솔에서 실제 프로젝트와 생성 후 상태를 확인했다.
+2026-10-10. 앱은 Firebase Web SDK로 Firestore를 직접 호출한다. Cloud Functions와 별도 발권 API는 사용하지 않는다. 운영 규칙 배포와 실제 명단 반영 상태는 아래 운영 상태에서 구분한다.
 
-## 실제 클라우드 상태
+## 연결 구조
 
-| 항목                    | 확인한 값                                      |
-| ----------------------- | ---------------------------------------------- |
-| 프로젝트 ID             | `gdsc-homecomming`                             |
-| 프로젝트 번호           | `719021201597`                                 |
-| 요금제                  | Spark, 무료 요금제 유지                        |
-| 등록 Web 앱             | `GDG Home Coming Web`                          |
-| Web 앱 ID               | `1:719021201597:web:1a0f272e853a5f32097fd4`    |
-| Firestore DB            | `(default)`                                    |
-| Firestore 에디션 / 모드 | Standard / Native                              |
-| Firestore 위치          | `asia-northeast3` (Seoul), 사용자 선택 후 생성 |
-| 초기 보안 모드          | Production, 모든 클라이언트 읽기·쓰기 차단     |
+`App` → `firebaseTicketService` → Firestore Web SDK 트랜잭션 + Security Rules.
 
-생성 후 콘솔 규칙 화면에서 다음 초기 규칙을 읽어 확인했다. 공개 테스트 모드를 사용하거나 규칙을 추가 수정하지 않았다.
+- 프로젝트: `gdsc-homecomming`, Firestore `(default)`, 서울 `asia-northeast3`.
+- 공개 Web SDK 설정은 Git에서 제외된 `.env.local`에 있다. 서비스 계정 키와 OAuth 토큰은 브라우저 환경 변수에 넣지 않는다.
+- `events/homecoming`: schemaVersion 2, 전체 발급 수, 20개 목적지별 인원, 마지막 작업 ID.
+- `events/homecoming/roster/{emailHash}`: 운영자가 가져온 참가자 허용 여부.
+- `events/homecoming/tickets/{emailHash}`: 참가자별 발급 결과와 재추첨 사용 여부.
+- `events/homecoming/operations/{operationId}`: 티켓과 집계를 묶는 변경 불가능한 작업 기록. 클라이언트 조회를 차단하며 공개 집계에는 참가자 해시를 포함하지 않는다.
+- 이메일은 앞뒤 공백 제거·소문자 변환 후 SHA-256으로 키를 만든다. Gmail 점·플러스 별칭은 합치지 않는다.
+- 발급은 전체 60명·목적지별 4명 제한을 지킨다. 재추첨은 기존 목적지를 제외하고 이전 인원 감소·새 인원 증가·기회 소진을 같은 트랜잭션에서 처리한다.
+- Security Rules가 티켓과 집계의 동시 변경, 정원, 재추첨 1회와 변경 가능한 필드를 검증한다. 규칙은 명단·티켓의 전체 목록 조회와 명단의 클라이언트 수정을 허용하지 않는다.
+- 운영 기본값은 Firebase다. 연결 실패를 브라우저 저장 데모 성공으로 바꾸지 않는다. `VITE_TICKET_SERVICE=demo`를 지정했을 때만 데모 서비스를 사용한다.
 
-```text
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
-}
+## 개인정보와 추첨의 경계
+
+기획대로 이메일 입력과 명단 포함 여부만 확인한다. **이메일 소유권 인증은 아니다.** 이메일을 아는 사람은 그 이메일로 티켓을 조회하거나 허용된 작업을 실행할 수 있다. 해시 문서 ID와 목록 차단은 이메일 본인 인증을 대체하지 않으며, 이메일 해시는 익명화된 데이터가 아니다.
+
+목적지 추첨은 브라우저에서 실행한다. Rules가 정원과 재추첨 횟수를 강제하더라도, 사용자가 코드를 조작해 유효한 다른 목적지를 고르는 것까지 차단하지는 못한다. 조작 방지 추첨이나 참가자 본인 인증이 필요해지면 별도의 신뢰할 수 있는 추첨·인증 설계가 필요하다.
+
+## 명단 가져오기
+
+명단 원본은 운영자가 관리하는 비공개 응답 시트의 `설문지 응답 시트1`, B열 `이메일 주소`다. 브라우저 앱이 이 비공개 시트를 직접 조회하지 않는다.
+
+운영자가 명단을 읽어 비공개 JSON 스냅샷으로 저장한 뒤 Admin SDK 스크립트로 가져온다. 스냅샷은 `.firebase/`처럼 Git에서 제외된 위치에 보관한다. 입력은 다음 중 하나이며 이메일이나 해시를 앱 소스·번들에 넣지 않는다.
+
+```json
+{ "emails": ["member@gdg.example"] }
 ```
 
-DB는 비어 있으며 참가자·추첨 데이터나 컬렉션을 만들지 않았다. 이번 작업에서 Authentication, Hosting, Storage, Functions를 활성화하거나 배포하지 않았다. Web 앱은 Hosting과 연결하지 않았고 콘솔에 Google Analytics 스트림 미연결 상태가 표시된다. SDK 구성에 `measurementId`가 있지만 Analytics SDK를 초기화하지 않는다. `storageBucket` 값도 실제 Storage 버킷 생성 증거가 아니다.
+또는 `{ "keys": ["64자리 소문자 SHA-256 키"] }` 형식을 사용한다. 중복은 제거하고 잘못된 입력은 거부한다. 출력은 건수만 기록한다.
 
-콘솔 확인 위치:
+먼저 쓰기 없는 검사를 실행한다.
 
-- [프로젝트 일반 설정](https://console.firebase.google.com/u/0/project/gdsc-homecomming/settings/general?hl=ko)
-- [Firestore 데이터](https://console.firebase.google.com/u/0/project/gdsc-homecomming/firestore/databases/-default-/data?hl=ko)
-- [Firestore 규칙](https://console.firebase.google.com/u/0/project/gdsc-homecomming/firestore/databases/-default-/security/rules?hl=ko)
-
-## 로컬 설정과 사용
-
-- `.firebaserc`: 향후 Firebase CLI의 기본 프로젝트를 정확한 프로젝트 ID로 지정한다. CLI 로그인·배포 구성은 포함하지 않는다.
-- `.env.example`: 필요한 공개 Web 설정 변수 목록. 값을 채우지 않은 템플릿이며 `.env.local`에 콘솔의 실제 SDK 구성 값을 설정했다.
-- `.env.local`: 기존 다른 키를 보존하고 `VITE_FIREBASE_*` 공개 설정만 추가·갱신했다. 기존 `.gitignore`가 이 파일을 제외하며 `.env.example`만 추적 가능하게 허용한다.
-- `src/lib/firebase.ts`: 공식 모듈형 SDK `firebase/app`의 `initializeApp`을 사용한다. 의존성은 `firebase@13.0.0`이다.
-
-```ts
-import { initializeFirebaseClient } from './lib/firebase'
-
-const firebase = initializeFirebaseClient()
-if (firebase.status === 'not-configured') {
-  // missingVariables에 누락된 환경변수 이름이 담긴다.
-} else {
-  // firebase.app은 SDK 초기화 결과다. 원격 저장 성공 상태가 아니다.
-}
+```sh
+bun run roster:import --file .firebase/roster-import.json --project gdsc-homecomming
 ```
 
-초기화 함수는 설정 누락을 `not-configured`로 돌려주고 다른 프로젝트 ID는 오류로 거부한다. 같은 설정으로 반복 호출하면 같은 이름의 앱을 재사용한다. SDK 오류는 호출자에게 그대로 전달하며 샘플 발급 성공으로 치환하지 않는다. 실제 API 키·서비스의 원격 유효성은 `initializeApp`만으로 확인되지 않는다. 후속 API 호출의 오류는 별도로 처리해야 한다.
+실제 반영에는 Firestore 권한이 있는 운영자 ADC(Application Default Credentials)와 `--apply`가 필요하다. Firebase CLI 로그인과 Admin SDK ADC는 별도 인증 경로다.
 
-이 모듈은 호출형이며 기존 샘플 화면의 `App.tsx`나 앱 진입 코드를 변경하지 않았다. 프론트의 실제 서비스 통합 시 초기화 함수를 호출한다. 현재 5173 개발 서버를 재시작하지 않았다. Vite는 시작 시 환경변수를 읽으므로 실제 프론트 통합 후 환경 설정을 읽으려면 개발 서버를 새로 시작해야 한다.
+```sh
+gcloud auth application-default login
+bun run roster:import --file .firebase/roster-import.json --project gdsc-homecomming --apply
+```
 
-Firebase Web SDK 구성은 API 키를 포함해 공개 클라이언트 설정이다. `VITE_*`는 브라우저 번들에 포함된다. Sheets 접근 자격, 개인 OAuth 토큰, 서비스 계정 키를 이 변수에 넣으면 안 된다. Firebase 데이터 권한은 공개 설정의 비밀 유지가 아니라 서버 검증과 보안 규칙으로 제어한다. 이번 작업에서는 개인 토큰·서비스 계정 자격증명을 조회하지 않았다.
+스크립트는 요청한 문서를 다시 읽어 `eligible: true` 반영 건수를 확인한다. 이벤트 문서가 없고 기존 티켓도 없을 때만 schemaVersion 2의 빈 집계를 초기화한다. 기존 이벤트가 있으면 스키마·집계 유효성을 확인하고 **발급 수, 티켓, 재추첨 기록을 초기화하지 않는다.** 지원하지 않는 기존 스키마나 이벤트 없이 남아 있는 티켓이 있으면 작업을 중단한다.
 
-## 검증 범위와 남은 구현
+가져오기는 추가 방식이다. 이번 스냅샷에 없는 기존 참가자를 삭제하지 않는다. **시트와 자동 동기화하지 않으므로 신규 신청자는 새 스냅샷을 다시 가져와야 한다.** 명단 제외·취소는 별도 운영 작업이다.
 
-검증 완료:
+## 로컬 실행
 
-- 콘솔의 실제 Web 앱 등록 및 SDK 구성 조회.
-- DB 생성 후 `(default)` / `asia-northeast3` / Production deny-all 규칙 / Spark 표시 확인.
-- 실제 공개 설정으로 SDK 앱 초기화, 같은 앱 재사용.
-- 설정 없음·부분 누락 상태, 다른 프로젝트 차단, SDK 오류 전달 확인.
-- Firebase 모듈 단독 TypeScript 검사 및 ESLint 검사 통과.
-- 프론트 통합 후 전체 `bun run check`와 `bun run build` 통과. 기존 샘플 화면은 SDK 초기화 호출·실제 발권 API 연결을 포함하지 않는다.
-- `.env.local` Git 제외, `.env.example` 추적 가능 확인.
+Bun, Node 22, Firestore 에뮬레이터용 Java 21 이상이 필요하다. 이 Mac의 설치된 Java 25를 선택하는 예시:
 
-실제 참가 명단 조회, 최초 발급·재발급 트랜잭션, 이메일 기반 기존 티켓 복원, 동행 인원 집계 API, 개인정보 정책은 아직 구현되지 않았다. DB 읽기·쓰기 요청과 실제 발권은 수행하지 않았다. 현재 샘플 전광판 결과를 Firebase 저장 결과로 표시하면 안 된다. 이메일 소유권 인증이나 로그인을 추가하지 않았다.
+```sh
+bun install
+PATH="/opt/homebrew/opt/openjdk@25/bin:$PATH" bun run emulators
+```
 
-Firestore 클라이언트는 현재 규칙상 읽기·쓰기가 차단된다. 실제 서비스는 원래 기획대로 서버에서 Sheets 명단·국가 정원·재발급 기회를 검증해야 한다. 서버 실행 환경과 후속 연결은 별도 결정이며 이번 작업에서 결제나 배포를 시작하지 않았다.
+다른 터미널에서 에뮬레이터 준비 후 명단을 넣고 앱을 실행한다.
 
-CLI 상태: 로컬 Firebase CLI는 설치되어 있지 않았고 기존 `gcloud` 인증은 재인증 오류가 발생했다. 인증을 변경하지 않고 Aside 콘솔로 작업했다.
+```sh
+bun run emulators:seed
+bun run dev:emulator
+```
 
-## 공식 근거
+- 앱: <http://127.0.0.1:5174/>
+- 에뮬레이터 UI: <http://127.0.0.1:4000/>
+- 테스트 참가자: `demo@gdg.example`, `member@gdg.example`, `guest@gdg.example`.
+- 격리된 프로젝트 `demo-gdg-homecoming`과 Firestore `127.0.0.1:8080`을 사용한다. 운영 데이터로 자동 복사하지 않는다.
+- 반복 seed는 기존 티켓과 집계를 보존한다. seed/import는 에뮬레이터 모드에서 실제 프로젝트 ID나 외부 호스트를 거부한다.
+- 테스트 앱은 기존 앱 서버와 충돌하지 않게 5174 포트를 사용한다.
 
-- [Firebase Web 설정](https://firebase.google.com/docs/web/setup): Web 앱 등록 후 SDK 구성으로 모듈형 SDK를 초기화한다.
-- [Firebase 구성의 공개성](https://firebase.google.com/docs/projects/learn-more#config-files-objects): Web 구성은 공개 정보이며 데이터는 Security Rules로 보호한다.
-- [Firestore 위치](https://firebase.google.com/docs/firestore/locations): 서울은 `asia-northeast3`이며 생성 후 기존 DB의 위치 설정은 변경할 수 없다.
+## 검사
+
+에뮬레이터가 꺼져 있을 때:
+
+```sh
+PATH="/opt/homebrew/opt/openjdk@25/bin:$PATH" bun run test:firebase
+bun run build
+bun run lint
+```
+
+이미 실행 중인 에뮬레이터에서:
+
+```sh
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 bun test tests
+```
+
+테스트에는 입력·명단 가져오기 보호 장치, Firestore Security Rules의 허용·거부, 클라이언트 트랜잭션의 동시 요청과 재추첨 시나리오가 포함된다. 에뮬레이터 통과와 빌드 성공은 운영 배포 증거가 아니다.
+
+## 운영 상태
+
+2026-10-10 실제 프로젝트 `gdsc-homecomming`에 다음 작업을 완료했다.
+
+- Firebase CLI 인증과 Firestore 규칙·인덱스 배포 성공. 배포 대상은 Firestore만이다.
+- 제공된 시트의 B열 이메일 응답 2건을 중복 검사 후 해시 키로 가져오고, Admin SDK readback 2건을 확인했다. 이메일 원문은 앱 번들에 포함하지 않았다.
+- 로그인 없는 Web SDK로 운영 DB를 다시 읽어 schemaVersion 2, 참가 가능 2명, 기존 티켓 0건, 전체 발급 수 0을 확인했다. 명단 목록 조회는 `permission-denied`로 차단됐다.
+- 명단 가져오기에 사용한 일시적인 인증 파일은 처리 후 삭제했다. 저장소에는 인증 파일과 명단 스냅샷이 포함되지 않는다.
+- 실제 참가자의 발급·재추첨 기회는 소비하지 않았다. 쓰기 동작과 동시성 검증은 격리된 에뮬레이터에서 수행했다.
+
+검증 결과: 전체 124개 테스트 / 515 assertions 통과. 이 중 보안 규칙 36개는 정원 초과, 부분 쓰기, 집계 위조, 여러 티켓을 한 작업으로 변경, 두 번째 재추첨과 기록 변조를 거부한다. 직접 SDK 통합 검사는 중복 동시 발급·재추첨 및 전체 60명·목적지별 4명 제한을 확인했다. 빌드·타입 검사·ESLint·포맷 검사도 통과했다. 빌드에는 큰 JavaScript 번들 경고가 남아 있다.
+
+Aside 브라우저에서도 에뮬레이터 참가 확인 → 최초 발급(SYDNEY) → 재추첨(MEXICO CITY) → 새로고침 복원을 확인했다. 같은 티켓 ID와 revision 2·재추첨 소진 표시가 유지됐고, DB readback은 전체 1명·이전 목적지 0명·새 목적지 1명이었다.
+
+프런트 호스팅의 신규 배포는 이 기록에 포함하지 않는다. 현재 작업 폴더의 기본 개발 앱은 운영 Firestore를 직접 호출한다.
+
+Cloud Functions 배포나 이를 위한 Blaze 전환은 이 구조의 필수 단계가 아니다.
+
+공식 문서: [Firestore 트랜잭션](https://firebase.google.com/docs/firestore/manage-data/transactions), [Security Rules 조건과 getAfter](https://firebase.google.com/docs/firestore/security/rules-conditions), [Admin SDK 설정](https://firebase.google.com/docs/admin/setup).

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  PREPARE_DURATION,
   PRINT_DURATION,
   departureFlowReducer as reduce,
   type DepartureFlow,
@@ -32,14 +33,23 @@ describe('landscape reveal and direction-independent printing flow', () => {
     expect(reduce(state, { type: 'printed', runId: 100 })).toBe(state)
   })
 
-  test('confirmation immediately starts one print with a fixed duration', () => {
-    expect(PRINT_DURATION).toBe(1600)
-    const printing = reduce(ready(), confirm)
-    expect(printing).toMatchObject({
+  test('confirmation prepares for two seconds before one print with a fixed duration', () => {
+    expect(PREPARE_DURATION).toBe(2000)
+    expect(PRINT_DURATION).toBe(3200)
+    const preparing = reduce(ready(), confirm)
+    expect(preparing).toMatchObject({
       screen: 'issuer',
+      phase: 'preparing',
+      printingStartedAt: 8000,
+    })
+    expect(reduce(preparing, { type: 'printed', runId: 100 })).toBe(preparing)
+    expect(reduce(preparing, { ...confirm, now: 9000 })).toBe(preparing)
+    const printing = reduce(preparing, { type: 'print', runId: 100 })
+    expect(printing).toMatchObject({
       phase: 'printing',
       printingStartedAt: 8000,
     })
+    expect(reduce(printing, { type: 'print', runId: 100 })).toBe(printing)
     expect(reduce(printing, { ...confirm, now: 10000 })).toBe(printing)
     const complete = reduce(printing, { type: 'printed', runId: 100 })
     expect(complete).toMatchObject({
@@ -47,6 +57,7 @@ describe('landscape reveal and direction-independent printing flow', () => {
       printingStartedAt: 8000,
     })
     expect(reduce(complete, { type: 'printed', runId: 100 })).toBe(complete)
+    expect(reduce(complete, { type: 'print', runId: 100 })).toBe(complete)
     expect(reduce(complete, { ...confirm, now: 12000 })).toBe(complete)
   })
 
@@ -54,11 +65,13 @@ describe('landscape reveal and direction-independent printing flow', () => {
     const state = ready(true)
     expect(state).toMatchObject({ screen: 'reveal', phase: 'ready' })
     expect(reduce(state, { type: 'printed', runId: 100 })).toBe(state)
-    const printing = reduce(state, { ...confirm, reducedMotion: true })
-    expect(printing).toMatchObject({
-      phase: 'printing',
+    const preparing = reduce(state, { ...confirm, reducedMotion: true })
+    expect(preparing).toMatchObject({
+      phase: 'preparing',
       printingStartedAt: 8000,
     })
+    expect(reduce(preparing, { type: 'printed', runId: 100 })).toBe(preparing)
+    const printing = reduce(preparing, { type: 'print', runId: 100 })
     expect(reduce(printing, { type: 'printed', runId: 100 })).toMatchObject({
       phase: 'complete',
     })
@@ -81,6 +94,7 @@ describe('landscape reveal and direction-independent printing flow', () => {
       }),
     ).toBe(state)
     expect(reduce(state, { type: 'printed', runId: 100 })).toBe(state)
+    expect(reduce(state, { type: 'print', runId: 100 })).toBe(state)
     const details = reduce(state, {
       type: 'reveal',
       runId: 10000,
@@ -101,7 +115,10 @@ describe('landscape reveal and direction-independent printing flow', () => {
       startedAt: 10000,
       phase: 'ready',
     })
-    const printing = reduce(nextReady, { ...confirm, now: 18000 })
+    const preparing = reduce(nextReady, { ...confirm, now: 18000 })
+    expect(reduce(preparing, { type: 'print', runId: 100 })).toBe(preparing)
+    expect(reduce(preparing, { type: 'printed', runId: 10000 })).toBe(preparing)
+    const printing = reduce(preparing, { type: 'print', runId: 10000 })
     expect(reduce(printing, { type: 'printed', runId: 100 })).toBe(printing)
     expect(reduce(printing, { type: 'printed', runId: 10000 })).toMatchObject({
       phase: 'complete',
@@ -248,12 +265,16 @@ describe('landscape gating and elapsed pause/resume', () => {
       landscape: true,
     })
     expect(resumed).toMatchObject({ phase: 'ready', runId: 100 })
-    const printing = reduce(resumed, { ...confirm, now: 12001 })
-    expect(printing).toMatchObject({
+    const preparing = reduce(resumed, { ...confirm, now: 12001 })
+    expect(preparing).toMatchObject({
       screen: 'issuer',
-      phase: 'printing',
+      phase: 'preparing',
       printingStartedAt: 12001,
     })
+    expect(
+      reduce(preparing, { type: 'orientation', now: 12002, landscape: false }),
+    ).toBe(preparing)
+    const printing = reduce(preparing, { type: 'print', runId: 100 })
     expect(
       reduce(printing, { type: 'orientation', now: 12002, landscape: false }),
     ).toBe(printing)

@@ -1,7 +1,7 @@
 # GDG Home Coming
 
 공항 전광판 추첨과 기념 탑승권을 위한 모바일 웹 프로젝트입니다.
-React + Vite + TypeScript로 참가자 흐름, 전광판, 탑승권을 포함한 데모 UI를 구성했습니다.
+React + Vite + TypeScript와 Firebase Web SDK의 직접 Firestore 연결로 참가자 확인, 전광판, 탑승권 발급·복원·재발급을 구성했습니다.
 
 ## 시작하기
 
@@ -12,6 +12,12 @@ React + Vite + TypeScript로 참가자 흐름, 전광판, 탑승권을 포함한
 bun install
 bun run dev
 ```
+
+앱은 기본적으로 Firestore를 직접 호출합니다. Cloud Functions는 사용하지 않습니다.
+로컬 Firebase 테스트는 `bun run emulators`를 실행한 뒤 다른 터미널에서
+`bun run emulators:seed`와 `bun run dev:emulator`를 실행하세요(Java 21 이상 필요, 테스트 앱 5174).
+기존 브라우저 저장 데모만 실행하려면 `VITE_TICKET_SERVICE=demo bun run dev`를 사용합니다.
+실행 설정과 검증·운영 상태는 [Firebase 연결 문서](docs/firebase-setup.md)를 참조하세요.
 
 의존성은 Bun으로 관리하며 `bun.lock`을 커밋합니다. 재현 가능한 설치에는
 `bun install --frozen-lockfile`을 사용하세요. 개발 서버 주소는 실행 후 터미널에 표시됩니다.
@@ -101,11 +107,25 @@ tailscale serve --https=10000 off
   Git 저장소가 아닌 ZIP 복사본은 먼저 `git init` 후 `bun run prepare`를 실행하세요.
   GUI에서 Git을 사용한다면 해당 앱의 PATH에서도 `bun`과 `node`를 찾을 수 있어야 합니다.
 
-## 다음 구현 범위
+## Firebase 배포
 
-실제 참가자 명단과 서버 데이터 연동이 남아 있습니다. Firebase SDK와 초기 설정은
-존재하지만 실제 명단 서버에는 연결하지 않았습니다. `.env*`는 기본적으로 Git에서
-제외하고 공유할 공개 변수 이름만 `.env.example`에 기록하세요.
+`bun run deploy:firebase --dry-run`으로 배포 설정과 예정 명령을 확인하고,
+`bun run deploy:firebase`로 검사·에뮬레이터 테스트·빌드 후 Hosting과 Firestore 규칙·인덱스를 배포합니다.
+Java 21 이상과 Firebase CLI 인증이 필요하며, 기본 배포 전에 개발용 에뮬레이터를 종료하세요.
+
+GitHub Actions는 `main` push 또는 `main` 대상 수동 실행 시 OIDC 인증으로 배포하고,
+PR에서는 검사·테스트·빌드만 실행합니다. 저장소 변수와 OIDC 설정, 현재 적용 상태는
+[Firebase 배포 문서](docs/firebase-deployment.md)를 확인하세요. 명단 가져오기는 배포와 별도입니다.
+
+## Firebase 운영 연결 상태
+
+Firestore 직접 연결·트랜잭션·Security Rules와 비공개 명단 가져오기 스크립트를 제공합니다.
+명단은 Google Sheets의 스냅샷을 운영자가 가져오며 신규 신청 후 다시 반영해야 합니다.
+이메일 입력은 본인 인증이 아니고 브라우저 추첨은 목적지 선택 조작을 막지 않습니다.
+2026-10-10 운영 Firestore 규칙·인덱스 배포와 명단 2건 반영·조회 검증을 완료했습니다.
+실제 티켓 발급은 아직 0건이며, 발급·재추첨 검증은 에뮬레이터에서 수행했습니다.
+상세 증거는 [Firebase 연결 문서](docs/firebase-setup.md)의 운영 상태를 확인하세요. `.env*`와 명단 파일은 Git에서 제외하고 공유할 공개 변수 이름만
+`.env.example`에 기록하세요.
 
 공식 문서: [Vite](https://vite.dev/guide/),
 [Tailwind CSS](https://tailwindcss.com/docs/installation/using-vite),

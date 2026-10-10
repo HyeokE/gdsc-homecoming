@@ -1,0 +1,123 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function eventPath() {
+      return /databases/$(database)/documents/events/homecoming;
+    }
+    function ticketPath(key) {
+      return /databases/$(database)/documents/events/homecoming/tickets/$(key);
+    }
+    function operationPath(id) {
+      return /databases/$(database)/documents/events/homecoming/operations/$(id);
+    }
+    function eligible(key) {
+      return key.matches('[0-9a-f]{64}')
+        && get(/databases/$(database)/documents/events/homecoming/roster/$(key)).data.eligible == true;
+    }
+    function destinationIds() {
+      return ['kr', 'jp', 'cn', 'th', 'in', 'vn', 'fr', 'it', 'gb', 'es',
+              'de', 'gr', 'us', 'ca', 'mx', 'br', 'ma', 'eg', 'au', 'nz'];
+    }
+    function validOperationId(id) {
+      return id is string && id.matches('[A-Za-z0-9_-]{8,128}');
+    }
+    function validCount(n) {
+      return n is int && n >= 0 && n <= 4;
+    }
+    function validCounts(c) {
+      return c is map && c.keys().hasAll(destinationIds())
+        && c.keys().hasOnly(destinationIds())
+        && validCount(c.kr) && validCount(c.jp) && validCount(c.cn)
+        && validCount(c.th) && validCount(c['in']) && validCount(c.vn)
+        && validCount(c.fr) && validCount(c.it) && validCount(c.gb)
+        && validCount(c.es) && validCount(c.de) && validCount(c.gr)
+        && validCount(c.us) && validCount(c.ca) && validCount(c.mx)
+        && validCount(c.br) && validCount(c.ma) && validCount(c.eg)
+        && validCount(c.au) && validCount(c.nz);
+    }
+    function validEvent(after) {
+      return after.keys().hasAll(['schemaVersion', 'total', 'counts', 'lastOperationId'])
+        && after.keys().hasOnly(['schemaVersion', 'total', 'counts', 'lastOperationId'])
+        && after.schemaVersion == 2 && after.total is int
+        && after.total >= 0 && after.total <= 60
+        && validCounts(after.counts) && validOperationId(after.lastOperationId);
+    }
+    function validTicket(t) {
+      return t.keys().hasAll(['id', 'destinationId', 'passengerName', 'gate', 'issuedAt', 'reissueUsed', 'revision', 'lastOperationId'])
+        && t.keys().hasOnly(['id', 'destinationId', 'passengerName', 'gate', 'issuedAt', 'reissueUsed', 'revision', 'lastOperationId'])
+        && t.id is string && t.id.matches('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        && t.destinationId in destinationIds()
+        && t.passengerName is string && t.passengerName.size() >= 1 && t.passengerName.size() <= 60
+        && t.passengerName.matches('[^\\x00-\\x1F\\x7F]+')
+        && t.gate == 'A03' && t.issuedAt is timestamp
+        && t.reissueUsed is bool && t.revision is int
+        && validOperationId(t.lastOperationId);
+    }
+    function validIssue(before, after, ticket) {
+      return ticket.revision == 1 && ticket.reissueUsed == false
+        && ticket.issuedAt == request.time
+        && after.total == before.total + 1
+        && after.counts.diff(before.counts).affectedKeys().hasOnly([ticket.destinationId])
+        && after.counts[ticket.destinationId] == before.counts[ticket.destinationId] + 1;
+    }
+    function validRedraw(before, after, oldTicket, ticket) {
+      return oldTicket.revision == 1 && oldTicket.reissueUsed == false
+        && ticket.revision == 2 && ticket.reissueUsed == true
+        && ticket.destinationId != oldTicket.destinationId
+        && ticket.diff(oldTicket).affectedKeys().hasOnly(['destinationId', 'reissueUsed', 'revision', 'lastOperationId'])
+        && after.total == before.total
+        && after.counts.diff(before.counts).affectedKeys().hasOnly([oldTicket.destinationId, ticket.destinationId])
+        && after.counts[oldTicket.destinationId] == before.counts[oldTicket.destinationId] - 1
+        && after.counts[ticket.destinationId] == before.counts[ticket.destinationId] + 1;
+    }
+    function validAllocation(before, after) {
+      let op = getAfter(operationPath(after.lastOperationId)).data;
+      let path = ticketPath(op.ticketKey);
+      let ticket = getAfter(path).data;
+      return validEvent(after) && before.schemaVersion == 2
+        && after.lastOperationId != before.lastOperationId
+        && !exists(operationPath(after.lastOperationId))
+        && eligible(op.ticketKey) && validTicket(ticket)
+        && ticket.lastOperationId == after.lastOperationId && op.revision == ticket.revision
+        && ((!exists(path) && validIssue(before, after, ticket))
+          || (exists(path) && validRedraw(before, after, get(path).data, ticket)));
+    }
+    function coupledTicket(key, ticket) {
+      let before = get(eventPath()).data;
+      let after = getAfter(eventPath()).data;
+      let op = getAfter(operationPath(ticket.lastOperationId)).data;
+      return after.lastOperationId != before.lastOperationId
+        && after.lastOperationId == ticket.lastOperationId
+        && op.ticketKey == key && op.revision == ticket.revision;
+    }
+    match /events/homecoming {
+      // Only anonymous aggregate counts are public. A trusted script seeds this document.
+      allow get: if true;
+      allow update: if validAllocation(resource.data, request.resource.data);
+      match /roster/{key} {
+        // Knowing an email is the product's access boundary; this is not email ownership verification.
+        allow get: if key.matches('[0-9a-f]{64}');
+      }
+      match /tickets/{key} {
+        allow get: if eligible(key);
+        allow create, update: if coupledTicket(key, request.resource.data);
+      }
+      match /operations/{id} {
+        // Hidden receipts bind one ticket to each allocation update without publishing email hashes.
+        allow create: if validOperationId(id)
+          && request.resource.data.keys().hasAll(['ticketKey', 'revision'])
+          && request.resource.data.keys().hasOnly(['ticketKey', 'revision'])
+          && request.resource.data.ticketKey is string
+          && request.resource.data.ticketKey.matches('[0-9a-f]{64}')
+          && request.resource.data.revision in [1, 2]
+          && getAfter(eventPath()).data.lastOperationId == id
+          && get(eventPath()).data.lastOperationId != id
+          && getAfter(ticketPath(request.resource.data.ticketKey)).data.lastOperationId == id
+          && getAfter(ticketPath(request.resource.data.ticketKey)).data.revision == request.resource.data.revision;
+      }
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

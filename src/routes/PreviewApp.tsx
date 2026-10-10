@@ -7,13 +7,21 @@ import { departurePreview } from '../fixtures/departurePreview'
 import { PRINT_DURATION } from '../hooks/departureFlow'
 import { useDepartureReveal } from '../hooks/useDepartureReveal'
 import { getPreviewRoute, PREVIEW_ROUTES } from './previewRoutes'
+import { PREVIEW_RESULT_PATH } from './previewResultRoute'
 
 // A separate route subtree: participant storage and App bootstrap never mount here.
 export function PreviewApp() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { flow, start, confirm, rolling, reducedMotion, needsOrientation } =
-    useDepartureReveal(departurePreview)
+  const {
+    flow,
+    confirm,
+    rolling,
+    reducedMotion,
+    needsOrientation,
+    userRowIndex,
+    setRowCapacity,
+  } = useDepartureReveal(departurePreview)
   const canonical = getPreviewRoute(flow)
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -29,7 +37,7 @@ export function PreviewApp() {
   return (
     <main
       tabIndex={-1}
-      className="mx-auto flex min-h-svh w-full max-w-[960px] flex-col items-start bg-canvas px-page py-4 text-foreground"
+      className={`mx-auto flex min-h-svh w-full flex-col items-start bg-canvas py-4 text-foreground ${flow.screen === 'issuer' ? 'px-0' : 'max-w-[960px] px-page'}`}
     >
       {needsOrientation ? (
         <OrientationPrompt />
@@ -39,6 +47,8 @@ export function PreviewApp() {
             key={flow.runId}
             result={departurePreview}
             phase={reducedMotion ? 'ready' : flow.phase}
+            userRowIndex={userRowIndex}
+            onRowCapacity={setRowCapacity}
             rolling={rolling}
             reducedMotion={reducedMotion}
             onConfirm={() => {
@@ -54,11 +64,7 @@ export function PreviewApp() {
           phase={flow.phase}
           reducedMotion={reducedMotion}
           printDurationMs={PRINT_DURATION}
-          continueLabel="다시 보기"
-          onContinue={() => {
-            start()
-            navigate(PREVIEW_ROUTES.departure, { replace: true })
-          }}
+          onContinue={() => navigate(PREVIEW_RESULT_PATH, { replace: true })}
         />
       )}
     </main>

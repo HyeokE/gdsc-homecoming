@@ -1,132 +1,266 @@
 .ticket-issuer {
   container-type: inline-size;
-  padding-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: calc(100svh - 32px);
+  padding: 20px 0;
 }
-.issuer-output {
+.issuer-scene {
+  --issuer-housing-width: clamp(28px, 4cqi, 44px);
+  --issuer-feed-inset: 18px;
+  position: relative;
   display: grid;
-  grid-template-columns: clamp(82px, 13cqi, 116px) minmax(0, 1fr);
+  grid-template-columns: var(--issuer-housing-width) minmax(0, 1fr);
   align-items: stretch;
+  width: min(100%, 1400px);
+  padding-top: 12px;
 }
 .issuer-machine {
   position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  padding: 16px 14px 16px 10px;
-  border: 1px solid var(--ui-board-seam);
-  border-radius: 8px 3px 3px 8px;
-  background: var(--ui-surface);
-  box-shadow: 0 3px 0 var(--ui-board);
-}
-.issuer-machine__header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.issuer-machine h1 {
-  font-family: var(--font-mono);
-  font-size: clamp(14px, 2cqi, 18px);
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-.issuer-machine h1:focus {
-  outline: none;
-}
-.issuer-machine__header p {
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--ui-muted);
-  word-break: keep-all;
-}
-.issuer-machine__slot {
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  right: -4px;
-  width: 9px;
-  border-radius: 2px;
-  background: var(--ui-board);
+  grid-column: 1;
+  grid-row: 1;
+  border: 1px solid #72787c;
+  border-right-color: #121619;
+  border-left: 0;
+  border-radius: 0 5px 5px 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(255 255 255 / 3%),
+      transparent 30%,
+      rgb(0 0 0 / 8%)
+    ),
+    linear-gradient(90deg, #545b61, #3f464b 12%, #333a40 76%, #272e34);
   box-shadow:
-    inset 2px 0 0 #080a0c,
-    1px 0 0 var(--ui-border);
+    inset 0 2px 1px rgb(255 255 255 / 12%),
+    inset 1px 0 0 rgb(255 255 255 / 7%),
+    6px 8px 12px rgb(0 0 0 / 35%);
+}
+.issuer-machine::before {
+  position: absolute;
+  inset: -10px 3px auto 0;
+  height: 10px;
+  border: 1px solid #606970;
+  border-bottom: 0;
+  border-radius: 0 5px 0 0;
+  background: linear-gradient(#262e35, #545d65);
+  content: '';
+}
+.issuer-machine::after {
+  position: absolute;
+  z-index: 4;
+  top: var(--issuer-feed-inset);
+  right: 5px;
+  bottom: var(--issuer-feed-inset);
+  width: 4px;
+  border-left: 1px solid #606971;
+  border-right: 1px solid #080b0d;
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(90deg, #485158, #242b31 40%, #11181d);
+  box-shadow: 6px 0 7px rgb(0 0 0 / 40%);
+  content: '';
+}
+.issuer-machine__light {
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  width: 4px;
+  height: 4px;
+  flex: none;
+  border-radius: 50%;
+  background: #e7ba71;
+  box-shadow: 0 0 5px rgb(231 186 113 / 50%);
+  animation: issuer-working 0.9s ease-in-out infinite;
+}
+.ticket-issuer[data-phase='complete'] .issuer-machine__light {
+  background: #a0d5ae;
+  box-shadow: 0 0 5px rgb(129 207 150 / 45%);
+  animation: none;
+}
+.issuer-machine__screw {
+  position: absolute;
+  left: 6px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #171e23;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    #727b80 42%,
+    #1f282e 44% 57%,
+    #59636a 60%
+  );
+  box-shadow: 0 1px 0 rgb(255 255 255 / 12%);
+}
+.issuer-machine__screw--left {
+  top: 12px;
+}
+.issuer-machine__screw--right {
+  bottom: 12px;
+}
+.issuer-slot {
+  position: absolute;
+  z-index: 1;
+  top: var(--issuer-feed-inset);
+  right: -4px;
+  bottom: var(--issuer-feed-inset);
+  width: 16px;
+  overflow: hidden;
+  border: 1px solid #12191f;
+  border-left: 3px solid #1b232a;
+  border-radius: 6px 3px 3px 6px;
+  background: #040709;
+  box-shadow:
+    -1px 0 0 #626c74,
+    inset 6px 0 8px #000,
+    1px 0 0 #6a747b;
+}
+.issuer-slot__roller {
+  position: absolute;
+  inset: 10px 2px 10px 5px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    180deg,
+    #171d20 0 24px,
+    #101619 24px 29px
+  );
+  box-shadow: inset 2px 0 2px #2d3539;
 }
 .issuer-paper-window {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
+  margin-left: -7px;
   overflow: hidden;
-  padding: 6px 0 10px 8px;
+  padding: var(--issuer-feed-inset) 16px var(--issuer-feed-inset) 0;
 }
 .issuer-paper-window::after {
   position: absolute;
-  z-index: 3;
-  top: 6px;
-  bottom: 10px;
+  z-index: 2;
+  top: var(--issuer-feed-inset);
+  bottom: var(--issuer-feed-inset);
   left: 0;
-  width: 8px;
-  background: rgb(8 10 12 / 35%);
-  content: '';
+  width: 17px;
+  background: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 65%),
+    rgb(0 0 0 / 12%) 40%,
+    transparent
+  );
   pointer-events: none;
+  content: '';
 }
 .issuer-paper {
   position: relative;
   width: 100%;
-  will-change: transform;
+  transform: translateX(0);
 }
-.issuer-caption {
-  margin-top: 16px;
-  text-align: center;
+.issuer-paper__sheet {
+  position: relative;
+
+  border-radius: 2px;
+  box-shadow:
+    1px 1px 0 #bdb8ac,
+    0 12px 12px -10px rgb(0 0 0 / 60%),
+    0 25px 26px -16px rgb(0 0 0 / 45%);
 }
-.issuer-caption p {
-  font-size: 18px;
-  font-weight: 600;
+/* Only the feed translates. The housing, sheet and completed ticket stay fixed. */
+.ticket-issuer[data-phase='preparing'] .issuer-paper {
+  transform: translateX(-103%);
 }
-.issuer-caption span {
-  display: block;
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--ui-muted);
+.ticket-issuer[data-phase='printing'] .issuer-paper {
+  animation: issuer-paper-feed var(--issuer-feed-duration) linear both;
 }
-.issuer-continue {
-  display: block;
-  width: min(100%, 360px);
-  margin: 16px auto 0;
+@keyframes issuer-paper-feed {
+  0% {
+    transform: translateX(-103%);
+  }
+  9.4% {
+    transform: translateX(-94%);
+  }
+  68.75%,
+  73.75% {
+    transform: translateX(-28%);
+  }
+  92.5% {
+    transform: translateX(-1%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.issuer-paper__sheet > .boarding-pass {
+  border-color: #dedbd2;
+  background: #f4f1e8;
+  box-shadow: none;
+}
+.issuer-paper__lighting {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgb(38 31 22 / 8%),
+    transparent 12%,
+    rgb(255 255 255 / 12%) 65%,
+    rgb(53 45 32 / 6%)
+  );
+  pointer-events: none;
+}
+.issuer-paper__open {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(228 238 243 / 60%);
+  border-radius: 2px;
+  cursor: pointer;
+  box-shadow:
+    0 0 5px rgb(210 231 241 / 25%),
+    0 0 13px rgb(210 231 241 / 12%);
+  transition:
+    background 180ms,
+    box-shadow 180ms;
+}
+.issuer-paper__open:hover,
+.issuer-paper__open:focus-visible {
+  outline: 2px solid #e2eeff;
+  outline-offset: -3px;
+  background: rgb(255 255 255 / 5%);
+  box-shadow:
+    0 0 8px rgb(225 240 249 / 65%),
+    0 0 18px rgb(210 231 241 / 30%);
+  animation: none;
+}
+@keyframes issuer-working {
+  50% {
+    opacity: 0.8;
+  }
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+}
+.ticket-issuer[data-reduced-motion='true'] *,
+.ticket-issuer[data-reduced-motion='true'] *::before,
+.ticket-issuer[data-reduced-motion='true'] *::after {
+  animation: none;
+  transition: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .issuer-paper {
-    will-change: auto;
+  .ticket-issuer *,
+  .ticket-issuer *::before,
+  .ticket-issuer *::after {
+    animation: none;
+    transition: none;
   }
 }
-.issuer-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 16px auto 0;
-  max-width: 600px;
-}
-.issuer-footer .issuer-caption {
-  margin-top: 0;
-  text-align: left;
-}
-.issuer-footer .issuer-continue {
-  width: min(42%, 260px);
-  flex-shrink: 0;
-  margin: 0;
-}
-@media (orientation: landscape) and (max-height: 500px) {
-  .issuer-output {
-    width: min(100%, 600px);
-    margin-inline: auto;
+@media (orientation: landscape) and (max-height: 600px) {
+  .ticket-issuer {
+    padding: 4px 0;
   }
-}
-@container (max-width: 420px) {
-  .issuer-footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .issuer-footer .issuer-continue {
-    width: 100%;
+  .issuer-scene {
+    width: min(100%, calc((100svh - 96px) * 2.7 + var(--issuer-housing-width)));
   }
 }

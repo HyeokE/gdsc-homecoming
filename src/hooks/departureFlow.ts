@@ -6,8 +6,9 @@ const DEPARTURE_PHASES: readonly DeparturePhase[] = [
   'details',
   'ready',
 ]
-export const PRINT_DURATION = 1600
-export type IssuerPhase = 'printing' | 'complete'
+export const PREPARE_DURATION = 2000
+export const PRINT_DURATION = 3200
+export type IssuerPhase = 'preparing' | 'printing' | 'complete'
 export type DepartureFlow =
   | { screen: 'idle' }
   | {
@@ -30,6 +31,7 @@ type FlowAction =
   | { type: 'reveal'; runId: number; startedAt: number; phase: DeparturePhase }
   | { type: 'orientation'; now: number; landscape: boolean }
   | { type: 'confirm'; now: number; reducedMotion: boolean }
+  | { type: 'print'; runId: number }
   | { type: 'printed'; runId: number }
 
 export function departureFlowReducer(
@@ -82,9 +84,15 @@ export function departureFlowReducer(
       return {
         screen: 'issuer',
         runId: state.runId,
-        phase: 'printing',
+        phase: 'preparing',
         printingStartedAt: action.now,
       }
+    case 'print':
+      return state.screen === 'issuer' &&
+        state.phase === 'preparing' &&
+        state.runId === action.runId
+        ? { ...state, phase: 'printing' }
+        : state
     case 'printed':
       return state.screen === 'issuer' &&
         state.phase === 'printing' &&

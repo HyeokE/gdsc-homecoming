@@ -1,4 +1,6 @@
 import { destinations, getDestination } from '../data/destinations'
+import { TicketServiceError } from './ticketServiceError'
+export { TicketServiceError } from './ticketServiceError'
 import type {
   DemoOperation,
   DemoTicket,
@@ -12,13 +14,6 @@ export const DEMO_EMAILS = [
   'guest@gdg.example',
 ] as const
 export const DEMO_STORAGE_KEY = 'gdg-homecoming-demo-v1'
-export class TicketServiceError extends Error {
-  readonly kind: ServiceErrorKind
-  constructor(kind: ServiceErrorKind) {
-    super(kind)
-    this.kind = kind
-  }
-}
 interface StoragePort {
   getItem(key: string): string | null
   setItem(key: string, value: string): void

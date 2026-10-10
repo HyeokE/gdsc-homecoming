@@ -9,15 +9,17 @@ import { departurePreview } from '../src/fixtures/departurePreview'
 const planFor = (country: string) =>
   createRollingPlan({ ...departurePreview, country })
 
-test('alphabet advances in order for a full lap then settles on its target', () => {
+test('alphabet advances from a blank plate directly through its ordered target', () => {
   const plan = planFor('Z')
   const cell = plan.rows.country[0]
-  expect(cell.durations).toHaveLength(51)
+  expect(cell.durations).toHaveLength(26)
   let time = 0
   cell.durations.forEach((duration, step) => {
     const visible = rollingStateAt(plan, time + duration / 2, 1).country[0]
-    expect(visible.current).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[step % 26])
-    expect(visible.next).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[(step + 1) % 26])
+    expect(visible.current).toBe(
+      step === 0 ? ' ' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[step - 1],
+    )
+    expect(visible.next).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[step])
     expect(visible.durationMs).toBe(duration)
     time += duration
   })
@@ -28,16 +30,16 @@ test('alphabet advances in order for a full lap then settles on its target', () 
   })
 })
 
-test('A rolls through Z and returns to A instead of being static', () => {
+test('A enters from blank with one real physical flip', () => {
   const plan = planFor('A')
-  expect(plan.rows.country[0].durations).toHaveLength(26)
+  expect(plan.rows.country[0].durations).toHaveLength(1)
   expect(rollingStateAt(plan, 0, 1).country[0]).toMatchObject({
-    current: 'A',
-    next: 'B',
+    current: ' ',
+    next: 'A',
     isFlipping: true,
   })
   expect(rollingStateAt(plan, plan.countryEnd - 1, 1).country[0]).toMatchObject(
-    { current: 'Z', next: 'A', isFlipping: true },
+    { current: ' ', next: 'A', isFlipping: true },
   )
   expect(rollingStateAt(plan, plan.countryEnd, 1).country[0]).toMatchObject({
     current: 'A',
@@ -48,12 +50,12 @@ test('A rolls through Z and returns to A instead of being static', () => {
 test('digits use 0-9 in order; spaces and sample punctuation remain stationary', () => {
   const plan = planFor('3 /')
   const digit = plan.rows.country[0]
-  expect(digit.durations).toHaveLength(13)
+  expect(digit.durations).toHaveLength(4)
   let time = 0
   digit.durations.forEach((duration, step) => {
     expect(rollingStateAt(plan, time, 1).country[0]).toMatchObject({
-      current: String(step % 10),
-      next: String((step + 1) % 10),
+      current: step === 0 ? ' ' : String(step - 1),
+      next: String(step),
     })
     time += duration
   })
@@ -67,9 +69,9 @@ test('digits use 0-9 in order; spaces and sample punctuation remain stationary',
 test('late frames preserve the ordered position and replay uses fresh step keys', () => {
   const plan = planFor('J')
   const time =
-    plan.rows.country[0].durations.slice(0, 10).reduce((a, b) => a + b, 0) + 5
+    plan.rows.country[0].durations.slice(0, 5).reduce((a, b) => a + b, 0) + 5
   const frame = rollingStateAt(plan, time, 1).country[0]
-  expect(frame).toMatchObject({ current: 'K', next: 'L', elapsedMs: 5 })
+  expect(frame).toMatchObject({ current: 'E', next: 'F', elapsedMs: 5 })
   expect(rollingStateAt(plan, time, 2).country[0].stepId).not.toBe(frame.stepId)
   expect(rollingStateAt(plan, 100000, 1).country[0]).toMatchObject({
     current: 'J',
@@ -102,8 +104,8 @@ test('sample finishes in 6-8 seconds and detail wheels start after layout comple
   )
   expect(rollingStateAt(plan, plan.countryEnd, 1).countrySettled).toBe(true)
   const durations = plan.rows.country.flatMap((cell) => cell.durations)
-  expect(Math.min(...durations)).toBe(60)
-  expect(Math.max(...durations)).toBe(110)
+  expect(Math.min(...durations)).toBe(110)
+  expect(Math.max(...durations)).toBe(180)
 })
 
 test('lowercase rolls in case-preserving order and complex graphemes remain intact', () => {
@@ -116,4 +118,19 @@ test('lowercase rolls in case-preserving order and complex graphemes remain inta
   expect(lower.wheel).toBe('abcdefghijklmnopqrstuvwxyz')
   const final = rollingStateAt(plan, plan.readyAt, 1)
   expect(final.passenger.map((cell) => cell.current).join('')).toBe(name)
+})
+
+test('hidden passenger and airport plans never delay visible country and gate confirmation', () => {
+  const base = createRollingPlan(departurePreview)
+  const hiddenLong = createRollingPlan({
+    ...departurePreview,
+    passengerName: 'Z'.repeat(100),
+    airportCode: 'ZZZZZZZZZZ',
+  })
+  expect(hiddenLong.readyAt).toBe(base.readyAt)
+  const ready = rollingStateAt(hiddenLong, hiddenLong.readyAt, 1)
+  expect(ready.passenger.map((cell) => cell.current).join('')).toBe(
+    'Z'.repeat(100),
+  )
+  expect(ready.gate.every((cell) => !cell.isFlipping)).toBe(true)
 })

@@ -16,7 +16,17 @@
     "lint-staged": "lint-staged",
     "prepare": "husky",
     "storybook": "storybook dev -p 6006 --host 127.0.0.1 --exact-port --no-open",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "bun test tests",
+    "emulators": "firebase emulators:start --project demo-gdg-homecoming --only firestore",
+    "test:firebase": "firebase emulators:exec --project demo-gdg-homecoming --only firestore \"bun test tests\"",
+    "dev:emulator": "VITE_TICKET_SERVICE=firebase VITE_USE_FIREBASE_EMULATORS=true vite --port 5174 --strictPort",
+    "emulators:seed": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 bun scripts/seed-emulator.mjs",
+    "roster:import": "bun scripts/import-roster.mjs",
+    "deploy:firebase": "bun scripts/deploy-firebase.mjs",
+    "deploy:ci": "gh workflow run firebase-deploy.yml --repo HyeokE/gdsc-homecoming --ref main",
+    "deploy:ci:status": "gh run list --repo HyeokE/gdsc-homecoming --workflow firebase-deploy.yml --limit 5",
+    "setup:firebase-ci": "bun scripts/configure-firebase-ci.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -30,6 +40,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@storybook/addon-a11y": "10.6.1",
     "@storybook/addon-docs": "10.6.1",
     "@storybook/react-vite": "10.6.1",
@@ -41,6 +52,8 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
+    "firebase-admin": "^14.5.0",
+    "firebase-tools": "^15.33.0",
     "globals": "^17.13.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",

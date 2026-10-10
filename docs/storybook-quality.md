@@ -151,7 +151,7 @@ Aside6006 전용 탭에서 UI 안정 이후 실제 CSS iframe viewport320×667 /
 
 사용자가 행마다 작은14타일을반복하는디자인을거절했다. 위14칸기록은overflow/데이터보존의기능검사이력이며미학통과를뜻하지않는다. 최신표현은국가8대형칸·승객12칸·하단공항3칸과게이트3칸으로위계를나누며부모가기본ready미학을먼저검토한다. 브라우저QA는그승인뒤수행한다.
 
-현재실데이터의최장영문국가는UNITED KINGDOM13graphemes/최단USA3이다. LongCountryAndPassenger를영국/LONDON HEATHROW/LHR로교체하고ShortCountryAndPassenger를미국/NEW YORK JFK/JFK로맞췄다. 명단에없는UAE19를실데이터최악값으로오해하지않는다. App/service에승객길이상한이없어기존혼합긴승객32graphemes를유지한다. Unicode edgecase도유지했다. Story추가없이44개다. 신규scanner7파일3hit는Unicodegraphemefixture/스와치비교간격/항공mono샘플로intentional이다. 다음QA는국가의대형패널존재감·승객과공항/게이트의보조위계·읽기쉽고답답하지않은여백을직접시각확인하며칸수충족만으로통과시키지않는다.
+현재실데이터의최장영문국가는UNITED KINGDOM14graphemes/최단USA3이다. LongCountryAndPassenger를영국/LONDON HEATHROW/LHR로교체하고ShortCountryAndPassenger를미국/NEW YORK JFK/JFK로맞췄다. 명단에없는UAE19를실데이터최악값으로오해하지않는다. App/service에승객길이상한이없어기존혼합긴승객32graphemes를유지한다. Unicode edgecase도유지했다. Story추가없이44개다. 신규scanner7파일3hit는Unicodegraphemefixture/스와치비교간격/항공mono샘플로intentional이다. 다음QA는국가의대형패널존재감·승객과공항/게이트의보조위계·읽기쉽고답답하지않은여백을직접시각확인하며칸수충족만으로통과시키지않는다.
 
 ### 재설계 이후 대표 시각·경계 QA
 
@@ -202,3 +202,65 @@ Aside6006 CSS viewport667×375 긴 이름은 정방향 종이510×238.22px,body6
 844×390 complete에서는 종이487.48×228.38px,body844=scroll844,caption18px,버튼251.98×50.39px/하단352.38px로 안내와 CTA가 viewport 안에 함께 보인다. 짧은 가로 화면은 출력 영역600px 이하로 제한하고 완료 안내와 CTA를 같은 하단 행에 배치했다. ReducedMotionPrinting은 data-reduced-motion=true,transform none,티켓1장으로 즉시 표시했다. 대표 evidence는 `horizontal-issuer-long-667-final.png`, `horizontal-issuer-complete-844-final.png`이며 같은 Aside evidence 디렉터리에 있다. 물리 휴대폰 검증이 아니다.
 
 전체 check 통과 후 scanner는42파일13hits였다. 기존 항공 mono/티켓 tracking/Unicode grapheme fixture/토큰 비교 간격은 intentional이며 새 issuer의 mono 브랜드는 같은 항공 표현이다. 확정된 신규 slop은 없다. 제품의 가로 발권은 부모 actual App/Preview phase 검증을 별도로 수행한다. 이 대표 표현 검증을46개 전체 interaction QA로 확대하지 않는다.
+
+## 사용자 행 선택·높이 채우기 검증 준비
+
+최신 요청은 별도 확인 CTA를 없애고 공개 모션이 끝난 최상단 사용자 항공편 행만 발권 대상으로 만드는 것이다. 배경 mock 행은 viewport 높이를 채우며 일부 행은 순차 플립을 보여주지만 상호작용 대상이 아니다. 기존 props/fixture를 재사용해 live 설명을 사용자 행 선택으로 갱신하고, 960×600 정착 표현 story를 추가했다. 현재6006 index readback의 catalog는53개이며, 다른 작업에서 추가한 stories도 포함한다. 이 숫자는 전체 interaction 통과를 뜻하지 않는다.
+
+구현 안정 후844×390/667×375/960×600에서 높이 채우기·가로 overflow·사용자 행 ready/disabled·Tab focus와 Enter/Space·배경 행 비대화형·mock ordered flips를 대표 검증한다. ReducedMotion은 즉시 정착하지만 실제 live의 portrait orientation gate는 유지해야 한다. 고정 props story의 ready 상태와 실제 hook 타임라인 완료 검증은 구분한다. 이전 CTA·고정 mock 개수에 관한 기록은 이번 요청 이전 이력이다.
+
+### 사용자 행 선택 최종 대표 QA
+
+최신 사용자는 누르라는 화면 안내도 제거하고 모션으로 선택 가능성을 보여달라고 요청했다. visible hint를 제거했고 최종 CSS는 판38px/행간6px/행 터치44px다. ready에서만 실제 노란판이280ms 동안0→−2px→0 한 번 움직이고 얇은 outline이 나타난다. country는 내부 그룹만 움직여 중첩 transform을 피한다. CSS를 읽어1회/reduced 차단을 확인했고, 짧은 최종 관찰 시 이미 정착해 transform none이었다. transition 순간의−2px 프레임을 실제로 캡처했다고 주장하지 않는다.
+
+Aside live에서 portrait390×844 회전 안내→landscape844×390 실제 재개를 확인했다. details3250ms에서 사용자 행 disabled,4000ms에 배경 행6개 moving leaves와 숫자 순차 변화(15:12→15:15,편명 끝9→2,다른 행15:42→15:43→15:45)를 관측했다.7250ms ready부터 행 enabled와 배경 정착을 확인했다. 초기 국가 moving은 primary class가 없으므로 mock 카운트로 해석하지 않으며 details 구간만 배경 플립 증거다. 최종 geometry 변경 시점에 source HMR이 있었으므로 이 타이밍은 별도 기능 관측값이다.
+
+최종 live ready에서 실제 Tab 키로 일본 발권하기 버튼에 focus/solid outline,실제 Enter 키로 hook의 발권 중 화면 전환을 확인했다. 공개 영역의 semantic button은 사용자 행1개이고 링크0개로 mock 행은 비대화형이다. Space 활성화는 별도 실행하지 않았다. ReducedMotion 고정 story는 ready/enabled·노란 outline·animation none·moving0을 확인했다. 실제 OS reduce 환경과 live portrait gate를 동시에 재검증했다고 주장하지 않는다.
+
+Storybook 최종 CSS viewport667×375/844×390은 mock4개,판38px,터치44px,body 폭과 scrollWidth가 동일했다. 아래 여백은 각각42.11px/46.53px로 가로 overflow가 없다.960×600은 mock8개/body960=scroll960이며 아래61.61px 여백이 남았다. Storybook decorator의 중앙 정렬/상하32px padding을 실제 App 기하와 구분했다. 초기 ResizeObserver 재측정과650ms country 배치 이동 중에는 잠시 어긋날 수 있어 정착 이후 country transform none을 다시 확인했다. 최종 전체폭 Storybook evidence는 `row-action-settled-844.png`다.
+
+부모 추가 요청으로 실제5173 preview의 전용 same-origin iframe844×390을 만들고 root는 숨기지 않았다. 정착 geometry는 사용자1+mock5=6행/38px판/44px터치/국가transform none,body844=scroll844,last row bottom366.66px,아래23.34px(<1행)였다. main height392.66px/body scrollHeight393으로 수직2.66px 초과를 발견해 부모에게 보고했다. 화면 폭은 넘지 않는다. 이 프레임의 screenshot은 외부 브라우저 폭 때문에 우측이 잘려 전체 시각 증거로 사용하지 않는다. 만든 `storybook-quality-final-frame`만 삭제한 뒤 원래 portrait 안내 상태를 readback했다.
+
+부모 집계 check/typecheck/앱 build/Storybook build 최종 통과를 수신했다. 이번 대표 QA는53개 전체 interaction 검증이나 실물 폰 검증이 아니다. scanner stories8파일3hits는 Unicode grapheme fixture/토큰 간격/항공 mono 샘플로 intentional이며 신규 확정 slop은 없다.
+
+최종 소형 판37px 교정 후 실제844×390 preview를 한 번 재검증했다: ready/사용자1+mock5=6행 유지,터치44px,body[844,844,390]/main height390으로 기존 수직2.66px 초과가 해결됐다. 마지막 판 bottom360.66px/아래29.34px(<1행)를 확인하고 전용 iframe만 삭제해 원래 portrait 안내 상태로 복귀했다. 이전38px 수치는 교정 전 이력이다.
+
+## 여러 항공사·ready 이후 배경 지속 갱신 준비
+
+최신 계약은 사용자 행이 공개 완료 후 고정되고 하단 mock 행만 여러 항공사의 운항 정보를 계속 플립 갱신하는 것이다. 이전 ready에서 배경이 정착한다는 관측은 이 변경 전 이력으로 보존한다. 국가 열 너비는 실제 catalog의 최장 grapheme 수에서 계산한다. 기존 static fixtures를 유지하고 live 설명을 새 계약으로 갱신했다.
+
+소스 안정 뒤667 또는844 대표 화면에서 최소2주기 연속 관측으로 사용자 행 target 불변·복수 항공사·mock target 변화·3D leaf를 검증한다. ready 사용자 행 선택은 기존 발권으로 이어져야 한다. 동작 줄이기는 정착 상태와 ongoing RAF 중단을 확인하고,portrait로 일시 정지했다가 돌아와도 사용자 정보가 유지돼야 한다. 모든 viewport 검증을 반복하지 않고 최장 국가14graphemes/자동 열 너비 계산은 별도 한 번 확인한다.
+
+Catalog readback에서 wheelLabel을 Intl.Segmenter로 측정해 최장 UNITED KINGDOM14graphemes,NEW ZEALAND11,AUSTRALIA9를 확인했다. 과거 문서의 영국13 표기는14로 바로잡았다.
+
+최신 표기 정책은 영국 wheelLabel을 UK로 줄이고,이에 따라 최장 국가는 NEW ZEALAND11graphemes다. LongCountryAndPassenger fixture는 뉴질랜드/AUCKLAND/AKL로 교체하고 ShortCountryAndPassenger는 UK/영국/LHR로 맞췄다. 이전14graphemes 확인은 변경 전 catalog의 측정 이력이다. 배경 갱신은 한 행(최대2행) burst를 끝낸 뒤8~12초 전역 idle을 유지하는 정책으로 다시 바뀌었으며,최종2주기 검증은 idle 구간을 포함해25~35초 관측한다. idle에는 moving leaf가 없어야 하고 사용자 행은 계속 고정돼야 한다.
+
+최신 추가 요구로 사용자 행은 항상 맨 위가 아닌 화면 안 임의 행에 배치되며 한 실행 동안 payload와 위치를 유지한다. 공개 후 손가락 안내가 노란 사용자 행을 가리키고 visible 지시 문장은 없다. 기존 top 불변 기준을 사용자 식별 노란 행의 payload/position 불변으로 바꾼다. 최종 통합 관측은 인접 mock burst에서도 사용자 행이 유지되는지,guide가 행에 붙어 있고 pointer-events none인지,reduce에서 정적이며 임의 위치가 viewport 안인지와 클릭/키보드 발권을 포함한다. 새 소스 안정까지 브라우저 검증은 보류했다.
+
+### 여러 항공사·랜덤 행·성능 최종 마감
+
+최종 보드는 TIME/DESTINATION/AIRLINE/FLIGHT/GATE/STATUS6열,30glyph다. 항공사에서 AIR를 제외하고 편명은 숫자3자리이며 상태는 한글2글자다. catalog 최장 NEW ZEALAND11graphemes를 현재 소스로 다시 확인했다. 랜덤 사용자 행은 실행별 위치를 선택하며 동적 배경에는 GDG/KOREAN/ASIANA/ANA/JAL 등 여러 항공사와 운항 값을 사용한다. 초기 배경 갱신은 details+12000ms 이후이고,한 행 burst 뒤11.6초 idle/14초 주기를 사용한다.
+
+844×390에서 한글 상태 clip을 실제 발견했다: inner glyph26.89px>plate22.20px였다. status-only wide 교정 후 glyph17.28px<plate22.20px/font19.97px로 해결됐고 최종 screenshot을 직접 확인했다. 영문 크기는 유지됐다. 보드 padding8px가 상하좌우 같고 body844=scroll844였다. 3D hand는 natural256×384/표시56×84,로드 완료/pointer-events none이며 뒤집힌 하단 안내의 손끝[422,322.97]가 노란 행 중심[422,322.97]와 정확히 일치하고 화면 안에 있다. 최종 evidence는 같은 Aside 디렉터리의 `final-six-columns-wide-status-844.png`다.
+
+소스 변경 중 긴 관측에서 iframe document identity가 바뀐 구간은 동일 실행의 사용자 행 이동으로 판정하지 않았다. 안정된 문서를 유지한 마지막31.05초 관측은 document 교체 없음/data-user-row5/payload1종류 불변,배경11가지 표시 상태와 여러 항공사·운항 값 변화,최대 한 행의3D matrix leaf 및 긴 idle을 확인했다. 타이머 표본이 후반에 줄어 두 번째 burst의 leaf를 별도로 잡지 못했으므로 실제2주기3D 검증 완료로 과장하지 않는다.14초 주기/idle 계약의 자동검증과 이 대표 브라우저 관측을 구분한다. portrait 안내→landscape 복귀 후에도 사용자 행5/같은 payload/enabled를 유지했다.
+
+최신 실행에서 노란 사용자 버튼의 실제 Enter 키 입력으로 발권 중 상태 전환을 확인했다. 실제 Tab focus도 확인했다. Space 키 입력 직후 전환을 확정하지 못해 Space 통과로 기록하지 않는다. ReducedMotion story는 ready/enabled·moving0·guide animation none이며,정착 후1.5초 requestAnimationFrame 요청0을 직접 계수했다. 임시 브라우저 observer와 RAF wrapper를 모두 정리했다.
+
+성능 관측은 같은844×390/visible/focused=false의 burst 진입 직후3초 구간이었다. 변경 전180 RAF frames/p95 17.6ms/max17.7ms/DOM mutation928/longtask0,변경 후180 frames/p95 17.4ms/max17.7ms/DOM711/longtask0이었다. 브라우저에서는60fps 유지와 긴 작업 미관측을 확인했으며,5열→6열/3D guide로 내용도 바뀌어 DOM 감소를 순수 React CPU 개선률로 해석하지 않는다. 구현 담당의 별도 동일5열 workload150frames×12mockrows bench는66.87→3.96ms(94.1% 감소)였으며 브라우저 CPU 측정과 분리한 소스 helper benchmark다.
+
+부모 최종 집계: 전체 검사와 앱/Storybook 재빌드 통과,78 tests pass/6 skip/0 fail/456 assertions. 이번 대표 관측을 전체 Storybook interaction 통과나 물리 휴대폰 검증으로 확대하지 않는다. source 추가 변경 없이 문서만 마감했다.
+
+### 손가락 안내 v2 교정 검증
+
+이전 56×84 손 이미지는 사용자 거절로 현재 수용 근거에서 제외한다. 새 pointing-hand-3d-v2.webp(240×253)는 실제844×390 Storybook에서38×40/.65opacity로 로드됐다. 실제 작은 render를 캡처해 직접 확인했고 작은 비스듬한 검지 포인터로 읽히며 큰 데이터 가림이나 투명 잔픽셀 노이즈가 보이지 않았다. 부모도 같은 캡처를 직접 확인해 수용했다. 캡처는 Aside artifacts의 `hand-v2-ready-cue-844.png`이며 CSS animation을 정지하거나 조작하지 않은 실제 cue다.
+
+cue 당시 guide bottom272.59px<viewport390px,body844=scroll844였다. 일반 ready cue가 DOM에서 사라진 뒤에도 사용자 버튼은 enabled였고, ReducedMotion story도1.1초 뒤 guide DOM missing/enabled를 확인했다. 실제 live 실행에서 cue가 사라진 노란 사용자 행을 클릭해 `탑승권 발권` region과 `발권 중입니다.` 상태로 전환했다.1300ms 일반/900ms reduced 제거 타이머는 소스 계약이며 브라우저 관측은 이후 DOM 제거를 확인한 범위다. 이번 검증은 손 안내 교정 범위이고 전체 성능·2주기 플립 검증을 반복하지 않았다.
+
+### 실제 플랩 기구 검사
+
+SingleFlapInspection은 제품에서 export한 실제 FlapCell을 재사용한다. wrapper를 display:grid로 두어 제품처럼 griditem blockification을 유지했고100×100 bounds를 직접 확인했다.2초 느린 A→B 검사에서 Web Animations currentTime을0/450/900/1500/2000ms로 고정한5장 캡처를 직접 확인했다. A 전체→접히는 A 상부/기존 A 하부→새 B 상부/기존 A 하부→앞으로 돌출한 B 하부→B 전체 순서로 읽히며 glyph masks와 hinge 순서가 유지됐다. 이들은 정지 단면 검사이며 제품 속도의 연속 영상으로 간주하지 않는다. evidence는 같은 Aside artifacts의 flap-v2-start/fold/edge/fall/settled.png다. scene computed transform-style preserve-3d/opacity1이며 셀 bounds는100×100으로 고정됐다.
+
+아래판92%의-2deg는 housing 안쪽 반발이라는 검토 후+2deg로 교정됐다. 신규 source에서2초 검사1912ms 단면인 flap-v2-landing92-positive.png를 직접 확인해 B 정착/과한 bounce나 old A 겹침 없음으로 판정했다. 기본110ms 실제 재실행은 mutation 관측 뒤 RAF samples로 상부0→-90,하부+90→0 진행을 확인했다(상부13~62ms/하부79~130ms, 시작 관측 지연 포함). 짧은110ms의 연속 육안/영상 인상은 별도 확보하지 못했으므로 느린 단면과 수치만으로 정상 속도 미학을 완전 검증했다고 주장하지 않는다. 실제 live hook도 ready 이후 노란 행을 클릭해 발권 중 상태로 전환됐다. 임시 observer는 모두 제거했다.
+
+stories scanner8파일3hits는 Unicode grapheme fixture·토큰 비교 gap·airport mono sample로 intentional이며 신규 confirmed slop은 없었다. 부모 집계는 최종 check/앱·Storybook build 통과,88 tests pass/42 skip/0 fail/642 assertions다. 이 자동 집계와 이번 대표 단면·클릭 관측은 분리한다.

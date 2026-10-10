@@ -1,4 +1,4 @@
-import { BoardingPass } from './BoardingPass'
+import { BoardingPassStub } from './BoardingPass'
 import type { DepartureResult } from './DepartureReveal'
 import { Modal } from './Modal'
 export interface EnlargedTicketModalProps {
@@ -13,16 +13,8 @@ export function EnlargedTicketModal({
 }: EnlargedTicketModalProps) {
   return (
     <Modal open={open} title="탑승권 크게 보기" onClose={onClose}>
-      <p className="mb-3 text-caption text-muted">
-        탑승권을 좌우로 움직여 확인할 수 있어요.
-      </p>
-      <div
-        className="ticket-enlarged"
-        tabIndex={0}
-        role="region"
-        aria-label="확대한 탑승권. 좌우 스크롤 가능"
-      >
-        <BoardingPass result={result} exportMode displayMode="expanded" />
+      <div className="ticket-stub-enlarged">
+        <BoardingPassStub result={result} exportMode />
       </div>
       <dl className="mt-5 text-body">
         <div>

@@ -3,7 +3,6 @@ export async function saveTicketImage(node: HTMLElement, ticketId: string) {
   await document.fonts.ready
   const blob = await toBlob(node, {
     pixelRatio: 3,
-    backgroundColor: '#ffffff',
     style: { margin: '0' },
   })
   if (!blob || blob.type !== 'image/png' || !blob.size)

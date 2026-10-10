@@ -18,6 +18,9 @@ export interface DemoTicket extends DepartureResult {
   revision: number
 }
 
+/** Shared ticket shape; the legacy name remains compatible with preview stories. */
+export type Ticket = DemoTicket
+
 export type ServiceErrorKind =
   | 'not-found'
   | 'connection'
@@ -26,6 +29,8 @@ export type ServiceErrorKind =
   | 'capacity'
   | 'no-alternative'
   | 'reissue-used'
+  | 'not-configured'
+  | 'invalid-input'
 export type DemoOperation = 'check' | 'restore' | 'issue' | 'reissue' | 'count'
 
 export interface TicketService {
