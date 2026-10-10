@@ -117,6 +117,11 @@ test('real implementation scopes reject siblings and outsiders while exposing ow
       exported: 'Modal',
     },
     {
+      owner: `${components}/EnlargedTicketModal`,
+      entry: 'paperRenderer',
+      exported: 'createPaperRenderer',
+    },
+    {
       owner: `${ticket}/services`,
       entry: 'firebaseTicketService',
       exported: 'createFirestoreTicketCall',
@@ -148,6 +153,7 @@ test('real implementation scopes reject siblings and outsiders while exposing ow
       ['components/DepartureReveal', 'DepartureReveal'],
       ['components/CheckInForm', 'EmailScreen'],
       ['components/ReissueConfirmModal', 'ReissueConfirmModal'],
+      ['components/EnlargedTicketModal', 'EnlargedTicketModal'],
       ['components/TicketIssuer', 'TicketIssuer'],
       ['services', 'createTicketRuntime'],
     ];
