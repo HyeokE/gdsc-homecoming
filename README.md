@@ -22,63 +22,6 @@ bun run dev
 의존성은 Bun으로 관리하며 `bun.lock`을 커밋합니다. 재현 가능한 설치에는
 `bun install --frozen-lockfile`을 사용하세요. 개발 서버 주소는 실행 후 터미널에 표시됩니다.
 
-## Tailscale에서 접속하기
-
-이 Mac과 같은 tailnet에 연결된 기기에서 아래 주소로 접속할 수 있습니다.
-
-- 앱: <https://mac-black.taile6a871.ts.net:8443/>
-- 출발 전광판: <https://mac-black.taile6a871.ts.net:8443/preview/departure>
-- Storybook: <https://mac-black.taile6a871.ts.net:10000/>
-
-개발 서버는 각각 별도 터미널에서 실행합니다.
-
-```sh
-bun run dev
-```
-
-```sh
-bun run storybook
-```
-
-앱 개발 서버를 터미널·에이전트 세션 종료 후에도 유지하려면 프로젝트 폴더에서 아래처럼
-실행합니다. 먼저 5173 포트에 기존 서버가 없는지 확인하세요.
-
-```sh
-lsof -nP -iTCP:5173 -sTCP:LISTEN
-nohup bun run dev > /tmp/gdsc-homecomming-vite.log 2>&1 < /dev/null &
-echo $! > /tmp/gdsc-homecomming-vite.pid
-```
-
-앱 로그는 `/tmp/gdsc-homecomming-vite.log`, 시작 프로세스 PID는
-`/tmp/gdsc-homecomming-vite.pid`에서 확인합니다. 재부팅 후에는 다시 실행해야 합니다.
-
-Tailscale Serve는 다음 명령으로 연결합니다. 기존 443 포트 서비스는 유지합니다.
-
-```sh
-tailscale serve --bg --https=8443 http://127.0.0.1:5173
-tailscale serve --bg --https=10000 http://127.0.0.1:6006
-tailscale serve status
-```
-
-`--bg` 설정은 Tailscale이 유지하지만 개발 서버를 자동으로 실행하지는 않습니다.
-Mac이 깨어 있고 Tailscale에 로그인되어 있으며 두 개발 서버가 실행 중이어야 합니다.
-재부팅하거나 서버를 종료했다면 위 Bun 명령을 다시 실행하세요. 서버 로그는 각 실행
-터미널에 표시됩니다. 휴대폰도 같은 tailnet에 연결해야 하며 인터넷 공개용 Funnel은
-사용하지 않습니다.
-
-Vite와 Storybook은 `127.0.0.1`에서 고정 포트로 실행하고 정확한 Tailscale 호스트명만
-추가 허용합니다. Mac의 Tailscale 이름이 바뀌면 `vite.config.ts`와 `.storybook/main.ts`의
-`allowedHosts`를 새 호스트명으로 바꾸고 서버와 Serve 설정을 다시 실행하세요.
-다른 Serve 서비스가 이미 8443 또는 10000을 사용한다면 해당 서비스를 덮어쓰지 말고
-빈 포트를 선택하세요.
-
-이 프로젝트의 프록시만 종료하려면 아래 명령을 사용합니다.
-
-```sh
-tailscale serve --https=8443 off
-tailscale serve --https=10000 off
-```
-
 ## 명령어
 
 | 명령어                 | 역할                                       |
