@@ -11,7 +11,7 @@
 
 ## 확인된 P2 — 승객명 grapheme 분리
 
-- 위치: `src/hooks/orderedWheel.ts:35`의 `Array.from(value)`.
+- 위치: `src/containers/ticket/utils/orderedWheel.ts:35`의 `Array.from(value)`.
 - 재현 입력: `Jose\u0301 👩🏽‍💻` — 결합 악센트와 이모지 조합을 포함한 닉네임.
 - 근거: 읽기 전용 Node 실행에서 해당 입력은 codepoint 10개로 분리되지만 grapheme은 6개다. 현재 슬롯은 결합 악센트, 피부색 modifier, ZWJ, 노트북을 각각 별도 판에 배치한다. 문자열 제한이 없는 승인된 입력에서 전광판의 이름 모양이 입력/탑승권과 달라진다.
 - 권장 수정: `Intl.Segmenter`의 grapheme 단위로 슬롯을 만든다. A–Z/숫자 단일 grapheme만 휠을 사용하고 나머지 완전한 grapheme을 정적으로 보존한다. 대문자 강제나 임의 입력 제한으로 해결하지 않는다.
@@ -19,7 +19,7 @@
 
 ## 잠재 P2 — 확대 티켓의 세부 글자 상한
 
-- 위치: `src/styles/modal.css:21`의 티켓 720px 너비와 `src/styles/boarding-pass.css:54`, `:71`, `:76`, `:82`의 font-size 상한.
+- 위치: `src/containers/ticket/components/ReissueConfirmModal/modal.css:21`의 티켓 720px 너비와 `src/containers/ticket/styles/boarding-pass.css:54`, `:71`, `:76`, `:82`의 font-size 상한.
 - 근거: 기본 root 16px에서 label/날짜 라벨/footer는 최대 .6rem(9.6px), 필드 값은 최대 .7rem(11.2px)이다. 확대 모달에서도 이 상한을 유지하므로 종이 너비는 커져도 세부 글자는 작을 수 있다.
 - 권장 검토: 확대/내보내기 전용 글자 크기를 별도로 정의하거나 확대 시 실제 정보 크기가 증가하도록 상한을 조정한다. 모바일 기본 티켓 레이아웃은 함께 확인한다.
 - 상태: 실제 화면 미확인. 확정 결함이나 시각 검증 완료로 기록하지 않는다. 부모가 designer 검토와 후속 Aside 검증을 수행할 예정이다.
@@ -50,7 +50,7 @@
 
 ### 신규 확인 P2 — 화면 전환 초점의 제목 우선순위
 
-- 위치: `src/App.tsx:145–148`.
+- 위치: `src/containers/ticket/TicketContainer.tsx:145–148`.
 - 코드: `document.querySelector('main h1[tabindex], main')`.
 - 재현 조건: 입장 → 이메일 또는 닉네임 → 전광판 같은 route 전환. querySelector는 selector 목록의 작성 순서가 아닌 DOM 문서 순서의 첫 일치 요소를 반환한다. 바깥 `main`이 항상 제목보다 먼저 일치해 제목의 tabIndex가 있어도 `main`에 초점이 간다.
 - 영향: 승인된 화면 전환 후 제목 focus 기준을 충족하지 못하며 사용자가 새 화면의 제목을 바로 받지 못한다.

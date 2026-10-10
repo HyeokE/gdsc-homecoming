@@ -1,0 +1,56 @@
+.ticket-save-toast {
+  position: fixed;
+  z-index: 100;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 16px;
+  border: 1px solid #424242;
+  border-radius: 12px;
+  background: #242424;
+  box-shadow: 0 8px 28px #0008;
+  color: #f3f3f3;
+  font-size: 13px;
+  line-height: 1.6;
+  animation: ticket-toast-in 180ms ease-out;
+}
+.ticket-save-toast__icon {
+  color: #adc9b6;
+}
+.ticket-save-toast[role='alert'] .ticket-save-toast__icon {
+  color: #fda4af;
+}
+.ticket-save-toast button {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 6px;
+  color: #bbb;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+}
+.ticket-save-toast button:focus-visible {
+  outline: 2px solid #fff;
+}
+@keyframes ticket-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticket-save-toast {
+    animation: none;
+  }
+}

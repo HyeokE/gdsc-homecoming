@@ -4,7 +4,7 @@
 
 ## 연결 구조
 
-`App` → 이메일 확인 시 선택적 Apps Script 명단 조회 → `firebaseTicketService` → Firestore Web SDK 트랜잭션 + Security Rules.
+`TicketContainer` → 이메일 확인 시 선택적 Apps Script 명단 조회 → `firebaseTicketService` → Firestore Web SDK 트랜잭션 + Security Rules.
 
 - 프로젝트: `gdsc-homecomming`, Firestore `(default)`, 서울 `asia-northeast3`.
 - 공개 Web SDK 설정은 Git에서 제외된 `.env.local`에 있다. 서비스 계정 키와 OAuth 토큰은 브라우저 환경 변수에 넣지 않는다.
@@ -45,7 +45,11 @@
 
 정기 트리거는 설치하지 않았다. `installRosterSync`에는 폼 제출·5분 주기 동기화를 설치하는 선택적 코드가 있지만, 이메일 확인 시 실시간 조회에 필요한 단계는 아니다.
 
-초기 서버 동기화는 명단 4건을 읽어 신규 2건 생성·기존 2건 보존과 readback을 확인했다. 독립 Apps Script 웹 앱을 배포하고 로컬 및 GitHub 저장소의 조회 URL을 설정했다. 2026-10-10 운영 사이트에서 `test@gmail.com` 입력 시 실제 시트 조회 요청 1회와 닉네임 단계 진입을 확인했다. 실참가자 발권·재발급은 실행하지 않았다. 격리된 Firestore 에뮬레이터를 포함한 전체 236개 테스트 / 1,146 assertions와 검사·빌드를 통과했다.
+초기 서버 동기화는 명단 4건을 읽어 신규 2건 생성·기존 2건 보존과 readback을 확인했다. 독립 Apps Script 웹 앱을 배포하고 로컬 및 GitHub 저장소의 조회 URL을 설정했다. 2026-10-10 테스트 계정 분리 전 운영 사이트에서 `test@gmail.com` 입력 시 실제 시트 조회 요청 1회와 닉네임 단계 진입을 확인했다. 미등록 테스트 이메일은 신청 내역 없음으로 차단됐고, 공개 이벤트의 발급 합계는 0으로 유지됐다. 실참가자 발권·재발급은 실행하지 않았다. 격리된 Firestore 에뮬레이터를 포함한 전체 250개 테스트 / 1,530 assertions와 검사·빌드를 통과했다.
+
+## 테스트 계정
+
+`test@gmail.com`은 브라우저 저장소만 사용하는 전용 테스트 계정이다. 정규화 후 정확히 일치하는 주소만 테스트 서비스로 연결하며, 시트 조회와 운영 Firebase 발권을 호출하지 않는다. 테스트 티켓은 참가자 정원을 소모하지 않고 반복 재발급할 수 있다. 다른 이메일과 Gmail 플러스 별칭은 기존 Firebase·실시간 시트 조회 경로를 그대로 사용한다. 위 운영 조회 기록은 이 테스트 계정을 분리하기 전의 검증이다.
 
 ## 명단 가져오기
 
@@ -72,7 +76,7 @@ gcloud auth application-default login
 bun run roster:import --file .firebase/roster-import.json --project gdsc-homecomming --apply
 ```
 
-스크립트는 요청한 문서를 다시 읽어 `eligible: true` 반영 건수를 확인한다. 이벤트 문서가 없고 기존 티켓도 없을 때만 schemaVersion 2의 빈 집계를 초기화한다. 기존 이벤트가 있으면 스키마·집계 유효성을 확인하고 **발급 수, 티켓, 재추첨 기록을 초기화하지 않는다.** 지원하지 않는 기존 스키마나 이벤트 없이 남아 있는 티켓이 있으면 작업을 중단한다.
+스크립트는 트랜잭션으로 누락된 참가자 문서만 생성하며 기존 문서와 `eligible: false` 차단 상태를 보존한다. 요청한 문서를 다시 읽어 참가 가능 건수(`verified`)와 차단 건수(`disabled`)를 확인한다. 이벤트 문서가 없고 기존 티켓도 없을 때만 schemaVersion 2의 빈 집계를 초기화한다. 기존 이벤트가 있으면 스키마·집계 유효성을 확인하고 **발급 수, 티켓, 재추첨 기록을 초기화하지 않는다.** 지원하지 않는 기존 스키마나 이벤트 없이 남아 있는 티켓이 있으면 작업을 중단한다.
 
 가져오기는 추가 방식이다. 이번 스냅샷에 없는 기존 참가자를 삭제하지 않는다. 이 수동 스냅샷 방식 자체는 시트와 자동 동기화하지 않는다. 실시간 조회를 사용하면 신규 신청자는 이메일 확인 시 반영되며, 조회 URL이 없는 환경에서는 새 스냅샷을 다시 가져온다. 명단 제외·취소는 별도 운영 작업이다.
 
@@ -112,7 +116,7 @@ bun run lint
 이미 실행 중인 에뮬레이터에서:
 
 ```sh
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 bun test tests
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 bun run test
 ```
 
 테스트에는 입력·명단 가져오기 보호 장치, Firestore Security Rules의 허용·거부, 클라이언트 트랜잭션의 동시 요청과 재추첨 시나리오가 포함된다. 에뮬레이터 통과와 빌드 성공은 운영 배포 증거가 아니다.

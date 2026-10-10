@@ -6,25 +6,21 @@
 
 ## 안내판의 데이터
 
-정적 열 제목 위, 값이 아래에 있는 6열 안내판이다. 시간 5칸, 도착국가 11칸, 항공사 6칸, 편명 숫자 3칸, 게이트 3칸, 상태 2칸으로 총 30칸이다. 위 제목은 한영 두 줄이며 아래의 실제 값·공백은 모두 같은 셀 폭·높이·표면·중앙 힌지를 사용한다. 각 카테고리 사이에는 6–10px 물리 간격 다섯 개를 두며 제목과 모든 값 행은 같은 35트랙(글자 30개와 간격 5개)을 공유한다.
+정적 열 제목 위, 값이 아래에 있는 6열 안내판이다. 최신 요청은 본문의 나라 이름·항공사 이름을 실제 IATA 코드로 대체한다. 시간5칸, 도착공항3칸, 항공사2칸, 편명 숫자3칸, 게이트3칸, 상태8칸으로 총24칸이며 카테고리 사이 다섯 간격을 포함한29트랙을 공유한다. 공통 출발국가는 DEPARTURES 옆 실제 국가 패널에 그대로 유지한다.
 
-노란색 사용자 행은 15:00 / 발급 결과의 국가 / GDG / 121 / 발급 결과의 게이트 / 탑승이다. 글자에만 기존 Google 노랑을 사용해 선택 행을 구분한다. 나머지 행들은 사용자가 요청한 고정 UI 목데이터이며 외부 실시간 운항 기록이 아니다.
+노란 사용자 행은 flow에서 한 번 캡처한 HH:mm / ICN / KE / 121 / 배정 gate / BOARDING이다. optional 표시 필드가 있으면 소비하고 기존 fixture에는 같은 기본값을 사용한다. 실제 공항·항공사 코드 사전으로 목데이터를 구성하지만 운항편이나 시각을 실시간 조회하거나 실제 직항을 보장하는 기능은 아니다. 탑승권 main/stub도 같은 항공사+편명 표시를 사용하며 브랜드 GDG AIR는 유지한다.
 
-| 시간  | 도착국가 | 항공사 | 편명 | 게이트 | 상태 |
-| ----- | -------- | ------ | ---- | ------ | ---- |
-| 15:15 | VIETNAM  | GDG    | 122  | B02    | 지연 |
-| 15:30 | FRANCE   | KOREAN | 123  | C03    | 탑승 |
-| 15:45 | ITALY    | ASIANA | 124  | D04    | 출발 |
+나머지 행은 기존 결정적 UI 목데이터와 주기 갱신 규칙을 유지한다. 접근성 결과와 완성 탑승권에는 귀국 방향의 출발 국가·도착 인천을 명확히 남긴다. 저장 schema·배정 id·서비스 발급 결과를 새 운항 기록으로 변경하지 않는다.
 
-표는 처음 세 예시이며 높은 화면에서는 추가 예시를 같은 규칙으로 채운다. 목데이터는 결과별로 다시 추첨하지 않는다. 코드의 fixture 주석과 스크린리더 설명에서 구분하며 화면에 추가 경고나 미리보기 문구를 붙이지 않는다. 사용자의 추가 요청으로 안내판 아래 한국어 국가·도시 평문은 제거했다. 국가·도시는 스크린리더 결과와 최종 탑승권에 유지한다. 승객명과 공항코드는 이 안내판에서 제외하지만 기존 탑승권과 접근성 결과에는 유지한다.
+## 큰 안내판 생성 후 전체 축소
 
-## 실제 국가판만 이동
+2026-10-10 최신 사용자 요청은 국가판 단독 이동을 대체한다. 처음에는 실제 국가 grapheme만 중앙에 놓고 정착시킨다. Hero는 최종 헤더 패널과 동일한 글자·판·힌지·간격 기하를 3배로 보여 주므로 보드가 처음 생길 때 국가 glyph/cell 크기를 바꾸지 않는다.
 
-처음에는 실제 국가 grapheme 수만큼의 플랩만 중앙에 놓는다. JAPAN은 5칸, USA는 3칸이며 공백도 한 칸이다. 초기 셀 폭은 36–64px이고 총 폭은 화면 안에 제한한다. 설명형 제목, 행사 eyebrow와 초기 대기 문구는 없다.
+`details` 시작에는 같은 국가 중심을 기준으로 전체 장비·제목·내용이 3배 크기로 먼저 나타난다. 공유 elapsed 기반 900ms 전환의 앞 32%(288ms)는 큰 보드를 유지한다. 표면 0–90ms → 제목 27–126ms → 열 제목 54–153ms → 본문 90–189ms로 차분히 등장하고, 모든 내용이 보인 뒤 약99ms 더 유지한다. 이후 612ms에 보드 전체의 scale과 translate를 함께 최종 위치로 줄인다. 시작과 끝의 속도·가속도가 0인 quintic easing으로 출발·정착을 부드럽게 하며 반동은 없다. 국가 패널은 fade하지 않는다. 국가 노드의 개별 layoutId tween은 제거했다. 최종 헤더의 cap-height 정렬과 본문 플랩 기구는 유지한다.
 
-국가가 정착하면 같은 국가 wrapper가 `departure-country-panel` layoutId로 사용자 행의 시간 5칸과 첫 간격 다음인 7번째 트랙의 국가 열에 이동한다. 이 wrapper는 초기와 최종 모두 실제 glyph만 포함한다. JAPAN의 최종 wrapper도 5칸이며 국가 예약 11칸의 나머지 6개 공백은 matrix 직접 자식으로 최종 자리에 고정된다. 공백이나 다른 행이 국가와 함께 날아가지 않는다. 원본 국가 인덱스를 key로 유지한다.
+확대 장면은 바깥 scene에서 clip하여 문서 가로 overflow를 막는다. 최종 행 수는 transform과 무관한 레이아웃 offset으로 계산한다. `data-transition-stage`는 country / board-hold / board-shrink / board-settled이며 `data-transition-progress`는 공유 reveal elapsed의 0~1 값이다. 별도 전환 타이머가 없어 portrait pause·run 재시작이 기존 reveal 시계와 일치하고 reduced motion에서는 즉시 최종 보드를 보여 준다. 공동 축소 612ms 동안만 reveal clock을 매 RAF 갱신하고, 나머지 플립과 정착 구간은 기존 30ms 샘플링을 유지한다.
 
-장비와 배경의 layout morph를 제거하고 국가 노드만 이동한다. 이동판은 overflow visible와 상위 레이어를 사용해 잘리지 않는다. 문자판 반부를 자르는 기존 구조와 rotateX 회전은 보존한다. 국가가 예약 열을 초과하면 실제 값만 추가 행으로 이어지고 공백은 외부 행렬이 채운다.
+회귀 검사는 hero 정착과 첫 보드 프레임의 국가판 크기 연속성, 큰 shell hold 후 전체 공동 축소, 최종 667/844 헤더 cap 정렬·가로 overflow·행 채움, portrait pause 및 reduced motion을 분리한다. 코드 검사는 시각 인수를 대신하지 않으며 실제 연속 프레임 판정은 독립 QA가 담당한다.
 
 ## 치수와 흐름
 
@@ -34,7 +30,7 @@
 
 ## 검사
 
-표현 소유 파일은 `src/components/DepartureReveal.tsx`, `src/styles/departure-reveal.css`이다. 6열·가변 행 구현 후 Prettier, 해당 컴포넌트 ESLint와 전체 TypeScript 검사를 통과했다. 변경마다 kill-ai-slop 스캔·코드 판독을 수행했다. 실물 플랩의 서체와 물리적 회전 명암은 의도된 표현이며 분위기 그라데이션이나 글로우를 추가하지 않았다.
+표현 소유 파일은 `src/containers/ticket/components/DepartureReveal/DepartureReveal.tsx`, `src/containers/ticket/components/DepartureReveal/departure-reveal.css`이다. 6열·가변 행 구현 후 Prettier, 해당 컴포넌트 ESLint와 전체 TypeScript 검사를 통과했다. 변경마다 kill-ai-slop 스캔·코드 판독을 수행했다. 실물 플랩의 서체와 물리적 회전 명암은 의도된 표현이며 분위기 그라데이션이나 글로우를 추가하지 않았다.
 
 카테고리 간격과 footer 삭제 후 컴포넌트 Prettier·ESLint·전체 TypeScript 검사를 다시 통과했다. kill-ai-slop 스캔에서 새 표현 문제는 발견되지 않았다. 실제 viewport 수치와 시각 검증 근거는 별도 `docs/storybook-quality.md`에서 관리한다.
 
@@ -50,7 +46,7 @@
 
 정착 sleep에서는 RAF를 돌리지 않고 다음 cycle까지 timer로 대기한다. 문서가 숨겨지거나 휴대폰이 세로가 되거나 컴포넌트가 사라지면 예약 작업을 취소한다. 가시성 복귀에서는 활성 시간만 이어가며 모션 감소에서는 목데이터도 움직이지 않는다. 목데이터 변경을 live status로 읽어 주지 않는다.
 
-항공사 표시명은 GDG·KOREAN·ASIANA·ANA·JAL·QANTAS로 AIR를 제외하고 최대 6칸에 유지한다. 보드 편명은 숫자 마지막 세 자리만 표시한다. 실제 티켓의 항공사·전체 편명과 발급 데이터는 유지한다. 상태는 지연·탑승·출발이며 한글 문자 변화는 알파벳을 임의 생성하지 않고 이전 판에서 새 판으로 180ms 실제 회전을 한다. 국가 열은 하드코딩 대신 목적지 catalog wheelLabel의 grapheme 최장 길이로 계산한다. 사용자 지시에 따라 영국 표기만 UK로 바꿨으며 현재 최장 NEW ZEALAND는 공백 포함 11칸이다. 저장된 배정·도시·서비스 로직은 바꾸지 않았다.
+항공사 표시명은 GDG·KOREAN·ASIANA·ANA·JAL·QANTAS로 AIR를 제외하고 최대 6칸에 유지한다. 보드 편명은 숫자 마지막 세 자리만 표시한다. 실제 티켓의 항공사·전체 편명과 발급 데이터는 유지한다. 상태는 DELAYED·BOARDING·DEPARTED이며 가장 긴 label의 grapheme 길이로 8칸을 계산한다. 사용자 일정은 BOARDING이다. 영어 상태 변화는 기존 A–Z 순차 physical wheel을 사용하며 다른 입력의 한글 직접 회전 분기는 보존한다. 국가 열은 하드코딩 대신 목적지 catalog wheelLabel의 grapheme 최장 길이로 계산한다. 사용자 지시에 따라 영국 표기는 UK, 뉴질랜드 표기는 NZ로 바꿨으며 현재 최장 AUSTRALIA는 9칸이다. 뉴질랜드의 국가명과 도시·공항 데이터는 유지한다. 저장된 배정·도시·서비스 로직은 바꾸지 않았다.
 
 행 수와 마지막 행 경계, 결정적 fixture, 순차 숫자 회전 및 grapheme 보존을 확인하는 행·기구 focused 테스트 두 파일 20개·409개 assertion을 추가했다. 컴포넌트·새 helper/hook의 Prettier·ESLint·전체 TypeScript가 통과했고 kill-ai-slop 스캔에서 새 표현 문제는 없었다. 실제 667×375·844×390 및 높은 가로 viewport의 행 수·하단 경계·발권 버튼 검증은 `docs/storybook-quality.md`에 기록하며 실제 휴대폰 실물 검증과 구분한다.
 
@@ -79,3 +75,17 @@
 초기 문자는 빈 판에서 A–Z 또는 숫자 순서로 target까지 한 번 진행하며 불필요한 완전 한 바퀴를 제거했다. 일반 step은 110ms, 마지막 세 step은 180ms로 읽히는 감속을 둔다. 공개 완료는 실제로 보이는 국가·게이트만 기다리며 숨겨진 승객·공항 wheel은 완료 시 최종값을 제공한다. catalog 20개 국가와 A03 게이트를 계산했을 때 countryEnd는 1780–3190ms, readyAt은 모두 기존 최소 공개 시간에 따른 6240ms였다.
 
 목업 step은 120ms, 한글 상태 직접 회전은 180ms이다. 가장 긴 실제 fixture 경로가 3.4초 budget 안에 정착하는 테스트를 추가했고 11.6초 전체 sleep은 유지했다. 첫 업데이트는 details 시작 후 12초, 이후 cycle은 15초이다. FlapCell을 export해 Storybook이 제품과 동일한 기구를 느린 검사 장면에서 재사용하며 별도 복제 모션을 만들지 않는다. 초기 blank/ordered continuity/late-offset/hidden-row readiness/fixture settlement/reduced motion을 focused 테스트에서 확인했다.
+
+상태 영문화 집중 검사는 영어 label 전체 보존·동적 최장 8칸·A–Z 순서·burst 내 정착을 추가로 확인했다. 새 containers 경로의 두 테스트 파일 21개·416 assertions, 해당 컴포넌트와 utility ESLint 및 TypeScript·Vite build가 통과했다. 기존 다른 범위 리팩터를 복원하거나 되돌리지 않았다.
+
+귀국 안내판의 공통 출발국가는 `DEPARTURES` 옆의 실제 국가 글자 패널로 표시한다. 최초 중앙 공개와 헤더 정착은 동일한 country wrapper와 실제 glyph key를 사용하며 빈판은 이동하지 않는다. 표의 도착국가 / DESTINATION 열은 유지하고 노란 사용자 행은 KOREA, 나머지는 각 목업 도착지다. 사용자 행 높이는 헤더 국가 길이와 무관하며 게이트 값만 필요한 행 수에 반영한다.
+
+사용자 행의 시간은 첫 가로 공개 시 사용자 기기의 로컬 HH:mm을 run당 한 번 캡처한다. 화면 회전·정지·목업 업데이트 동안 고정하고 새 공개 run에서만 갱신한다. optional boardingTime은 표시 객체에만 추가하여 발권기·완성 티켓으로 전달하며 서비스 schema와 저장값은 변경하지 않는다. Preview 결과는 route state의 검증된 시간으로 표시하고 정적 fixture는 기존 15:00을 유지한다. 이번 소스 연결의 ESLint·TypeScript 및 기존 focused 21개/416 assertions는 통과했다. 실제 가로 화면의 헤더 이동·시간 일치 근거는 별도 시각 QA에서 확인한다.
+
+## 실제 공항·항공사 식별 코드
+
+배정 국가는 출발국 헤더에 유지하고 운항표 본문은 도착공항 IATA 3자리와 항공사 IATA 2자리로 표시한다. 사용자 표시 객체는 ICN / KE / 121을 사용하고 탑승권 운항편도 KE121로 맞춘다. GDG 행사 브랜드와 발급 서비스 저장 schema는 유지한다. 국가 헤더 길이와 별개로 destination capacity는 공항 fixture에서 3, airline capacity는 항공사 fixture에서 2를 파생한다.
+
+항공사 fixture는 코드와 표시 이름을 함께 보유한다: KE 대한항공, OZ 아시아나항공, NH ANA, JL 일본항공, SQ 싱가포르항공, AM 아에로멕시코. [인천공항 공식 항공사 목록](https://www.airport.kr/ap_en/1408/subview.do) 및 [IATA 아시아나항공 정보](https://www.iata.org/en/about/members/airline-list/asiana-airlines/329/)에서 식별 코드를 확인했다. 공항 fixture는 NRT/HND/SIN/BKK/TPE/HKG/LHR/CDG/SYD와 이름을 함께 보유하며 ICN은 인천이다. [대한항공 공식 공항 코드 안내](https://news.koreanair.com/%ED%95%AD%EA%B3%B5%EC%83%81%EC%8B%9Dqa-%EB%8B%B9%EC%8B%A0%EC%9D%98-%EB%AA%A9%EC%A0%81%EC%A7%80%EA%B9%8C%EC%A7%80-%EA%B3%B5%ED%95%AD-%EC%BD%94%EB%93%9C%EA%B0%80-%ED%95%A8%EA%BB%98%ED%95%A9/) 및 [대한항공 공식 지점 목록](https://cargo.koreanair.com/ko/Branch-Information)을 참조했다. 실제 항공사·공항 식별 코드를 사용하지만 시각·편명·게이트는 행사 연출용 목업이며 실시간 운항표가 아니다.
+
+기존 캡처 시각 기준 offset/자정 wrap/캐시 격리/한 행 ordered flip/전체 sleep/모션 감소 동작은 유지한다. focused 테스트 24개·584 assertions에서 코드 fixture/동적 capacity/문자 정착과 기존 공개 동작을 검증했다.

@@ -1,0 +1,95 @@
+import { describe, expect, test } from 'bun:test';
+import { createDemoTicketService, DEMO_STORAGE_KEY } from '../demoTicketService';
+function fixture(emails?: string[]) {
+  const data = new Map<string, string>();
+  return {
+    data,
+    service: createDemoTicketService({
+      storage: {
+        getItem: (key) => data.get(key) ?? null,
+        setItem: (key, value) => {
+          data.set(key, value);
+        },
+      },
+      emails,
+      random: () => 0,
+    }),
+  };
+}
+describe('local demo ticket service', () => {
+  test('only demo participants; duplicate issue and restore preserve identity', async () => {
+    const { service } = fixture();
+    await expect(service.checkEmail('real@example.com')).rejects.toMatchObject({
+      kind: 'not-found',
+    });
+    const first = await service.issue('demo@gdg.example', 'Jason 한글', 'one');
+    expect(await service.issue('demo@gdg.example', 'Other', 'two')).toEqual(first);
+    expect(await service.restore(' DEMO@gdg.example ')).toEqual(first);
+  });
+  test('one reissue excludes old country, retains gate and idempotent result', async () => {
+    const { service } = fixture();
+    const first = await service.issue('demo@gdg.example', 'Jason', 'one');
+    const next = await service.reissue('demo@gdg.example', 'two');
+    expect(next.destinationId).not.toBe(first.destinationId);
+    expect(next.gate).toBe(first.gate);
+    expect(await service.count(first.destinationId)).toBe(0);
+    expect(await service.reissue('demo@gdg.example', 'two')).toEqual(next);
+    await expect(service.reissue('demo@gdg.example', 'three')).rejects.toMatchObject({ kind: 'reissue-used' });
+  });
+  test('failure keeps chance; uncertain commit is recovered without reallocation', async () => {
+    const { service } = fixture();
+    const first = await service.issue('demo@gdg.example', 'Jason', 'one');
+    service.failNext('reissue', 'connection');
+    await expect(service.reissue('demo@gdg.example', 'two')).rejects.toMatchObject({ kind: 'connection' });
+    expect(await service.restore('demo@gdg.example')).toEqual(first);
+    service.failNext('reissue', 'uncertain');
+    await expect(service.reissue('demo@gdg.example', 'two')).rejects.toMatchObject({ kind: 'uncertain' });
+    const restored = await service.restore('demo@gdg.example');
+    expect(restored?.reissueUsed).toBe(true);
+    expect(await service.reissue('demo@gdg.example', 'two')).toEqual(restored);
+  });
+  test('country capacity four and event capacity sixty are separate', async () => {
+    const emails = Array.from({ length: 61 }, (_, i) => `p${i}@gdg.example`);
+    const { service } = fixture(emails);
+    for (let i = 0; i < 60; i++) {
+      await service.issue(emails[i]!, `P${i}`, `${i}`);
+    }
+    expect(await service.count('kr')).toBe(4);
+    await expect(service.issue(emails[60]!, 'Last', 'last')).rejects.toMatchObject({ kind: 'capacity' });
+  });
+  test('invalid storage is reported, never silently deleted', async () => {
+    const { data, service } = fixture();
+    data.set(DEMO_STORAGE_KEY, 'broken');
+    await expect(service.restore('demo@gdg.example')).rejects.toMatchObject({
+      kind: 'storage',
+    });
+    expect(data.get(DEMO_STORAGE_KEY)).toBe('broken');
+  });
+});
+
+describe('stored demo ticket integrity', () => {
+  test.each([
+    { revision: 0 },
+    { revision: 2 },
+    { reissueUsed: true },
+    { issuedAt: 'yesterday' },
+    { issuedAt: -1 },
+    { gate: null },
+    { passengerName: '' },
+  ])('rejects corrupted ticket fields without rewriting storage %#', async (fields) => {
+    const { data, service } = fixture();
+    await service.issue('demo@gdg.example', 'Jason', 'issue-operation');
+    const stored = JSON.parse(data.get(DEMO_STORAGE_KEY)!);
+    Object.assign(stored.records[0].ticket, fields);
+    const corrupt = JSON.stringify(stored);
+    data.set(DEMO_STORAGE_KEY, corrupt);
+
+    await expect(service.restore('demo@gdg.example')).rejects.toMatchObject({
+      kind: 'storage',
+    });
+    await expect(service.reissue('demo@gdg.example', 'redraw-operation')).rejects.toMatchObject({
+      kind: 'storage',
+    });
+    expect(data.get(DEMO_STORAGE_KEY)).toBe(corrupt);
+  });
+});

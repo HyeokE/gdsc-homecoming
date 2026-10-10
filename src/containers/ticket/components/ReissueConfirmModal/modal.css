@@ -1,0 +1,44 @@
+.app-modal {
+  /* Keep the dialog palette complete, independent of the page it opens over. */
+  --ui-surface-raised: #fff;
+  --ui-foreground: #20252a;
+  --ui-muted: #64696e;
+  --ui-border: #d8dadd;
+  --ui-primary: #2459a8;
+  --ui-primary-hover: #1c4b91;
+  --ui-primary-active: #163d78;
+  --ui-on-primary: #fff;
+  --ui-disabled: #e9ebed;
+  --ui-on-disabled: #64696e;
+  --ui-info: #805600;
+  --ui-error: #b42338;
+  --ui-focus: #2459a8;
+  color-scheme: light;
+  width: calc(100% - 32px);
+  max-width: 500px;
+  max-height: calc(100svh - 32px);
+  padding: 0;
+  margin: auto;
+}
+.app-modal::backdrop {
+  background: rgb(0 0 0 / 70%);
+}
+.app-modal__content {
+  padding: 20px;
+  overflow: auto;
+  max-height: calc(100svh - 34px);
+  overscroll-behavior: contain;
+}
+.ticket-enlarged {
+  overflow: auto;
+  padding: 4px 0 12px;
+}
+.ticket-enlarged > .boarding-pass {
+  width: 1080px;
+  box-shadow: none;
+}
+@media (max-height: 450px) {
+  .app-modal__content {
+    padding: 12px;
+  }
+}

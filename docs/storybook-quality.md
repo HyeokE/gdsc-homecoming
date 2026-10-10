@@ -11,7 +11,7 @@
 - Storybook 10.6.1 / React Vite framework. 설치 시 npm registry 공식 패키지의 peerDependencies에서 Vite `^8.0.0`, React/React DOM `^19.0.0`, TypeScript `>=4.9.x` 지원을 확인했다. 기존 프레임워크 다운그레이드 없음.
 - 참고: [공식 React Vite framework](https://storybook.js.org/docs/get-started/frameworks/react-vite/), [공식 Vite 8 지원 추적](https://github.com/storybookjs/storybook/issues/33789).
 - Docs와 a11y addon만 추가. Play assertions는 `storybook/test` 사용. 별도 Playwright/Vitest 테스트 프레임워크 설치 없음.
-- Preview는 실제 `src/index.css`, max500px, 375/500/844×390 viewport 및 MotionConfig 동작 줄이기 toolbar를 제공한다. 실제 hook을 사용하는 live story는 OS `prefers-reduced-motion`과 현재 iframe 방향을 감지한다. 명시적인 ReducedMotion story는 즉시 정착을 보여준다.
+- Preview는 실제 `src/styles/globals.css`, max500px, 375/500/844×390 viewport 및 MotionConfig 동작 줄이기 toolbar를 제공한다. 실제 hook을 사용하는 live story는 OS `prefers-reduced-motion`과 현재 iframe 방향을 감지한다. 명시적인 ReducedMotion story는 즉시 정착을 보여준다.
 - stories는 표현 컴포넌트, fixtures, 목적지 데이터 및 순차 휠 hook만 import한다. Firebase 또는 Sheets API import/호출 없음.
 
 ## 상태 카탈로그
@@ -54,22 +54,22 @@ stories 변경 후 scanner 실행: 6 files / 2 groups / 2 hits.
 
 38 stories와 실제 실행 가능한 대표 interactions를 제공하며 모든 story의 개별 a11y 실행, 모든 viewport 시각검증 또는 물리 기기 검증이 끝났다고 주장하지 않는다. 부모 U6에서 제품 320/390/500 및 가로 화면·모션·이미지 저장을 확인한다. 정적 build의 Docs/axe chunk 경고는 개발 카탈로그의 패키지 chunk이며 제품 번들 경고가 아니다.
 
-Rollback은 `.storybook`, `src/stories`, 이 문서, Storybook scripts/dependencies와 해당 ignore/TS/ESLint 범위만 되돌린다. 현재 package 파일은 설치 종료 후 frontend에게 쓰기권한 반환했고 추가 이미지 의존성을 보존한다. 커밋·푸시·배포 없음.
+Rollback은 `.storybook`, `src/**/*.stories.tsx`, 이 문서, Storybook scripts/dependencies와 해당 ignore/TS/ESLint 범위만 되돌린다. 현재 package 파일은 설치 종료 후 frontend에게 쓰기권한 반환했고 추가 이미지 의존성을 보존한다. 커밋·푸시·배포 없음.
 
 ## 이전 회전 정책의 U6 검증 (세로 출력 변경으로 대체)
 
 최신 enlarged BoardingPass/h1/onContinue 계약 이후 재확인했다. 320/390/500, 667×375/844×390 viewport를 추가했다. 초기 Storybook 메뉴 선택이 실제 iframe 크기를 변경하지 않던 상태에서는 same-origin `#storybook-preview-iframe` CSS width/height/min/max를 고정하고 innerWidth/innerHeight readback으로 확인했다. 이후 initialGlobals viewport 기본390을 명시하자 addon 폭이390으로 적용됐지만 높이는 사용 가능한 바깥 패널 높이778로 제한됐다. 정확한 요청 높이는 CSS iframe 방법으로 검증했다. 이는 데스크톱 브라우저의 CSS viewport이며 실제 휴대폰 증거가 아니다.
 
-| 대표 상태           | CSS viewport                | 결과                                                                         |
-| ------------------- | --------------------------- | ---------------------------------------------------------------------------- |
-| Landing             | 320×667 / 500×900           | body clientWidth=scrollWidth 305/485, CTA 높이50px, 행사 제목/정보 wrap 정상 |
-| Email format error  | 320×667                     | body320=scroll320, error/label/CTA 보임, back44px/CTA50px                    |
-| Nickname long       | 390×844                     | body390=scroll390, input value 전체 유지(입력 내 수평이동), back44px/CTA50px |
-| Ticket long         | 320×667 / 390×844 / 500×900 | body305/375/485=scrollWidth, 이름 wrap, CTA≥44px                             |
-| Expanded long modal | 320×667                     | body320=scroll320, modal286=scroll286, 닫기62×52px, label14.4px              |
-| Expanded long modal | 667×375                     | body667=scroll667, main500, modal높이341, 내부 content341→705 세로scroll     |
-| Issuer printing     | 667×375 / 844×390           | body667/844=scrollWidth, main500, 티켓과 발권기 가로화면에 표시              |
-| Reduced motion      | 320×667                     | 확정 결과 즉시 표시, 확인 CTA265×48px 유지, body305=scroll305                |
+| 대표 상태 | CSS viewport | 결과 |
+| --- | --- | --- |
+| Landing | 320×667 / 500×900 | body clientWidth=scrollWidth 305/485, CTA 높이50px, 행사 제목/정보 wrap 정상 |
+| Email format error | 320×667 | body320=scroll320, error/label/CTA 보임, back44px/CTA50px |
+| Nickname long | 390×844 | body390=scroll390, input value 전체 유지(입력 내 수평이동), back44px/CTA50px |
+| Ticket long | 320×667 / 390×844 / 500×900 | body305/375/485=scrollWidth, 이름 wrap, CTA≥44px |
+| Expanded long modal | 320×667 | body320=scroll320, modal286=scroll286, 닫기62×52px, label14.4px |
+| Expanded long modal | 667×375 | body667=scroll667, main500, modal높이341, 내부 content341→705 세로scroll |
+| Issuer printing | 667×375 / 844×390 | body667/844=scrollWidth, main500, 티켓과 발권기 가로화면에 표시 |
+| Reduced motion | 320×667 | 확정 결과 즉시 표시, 확인 CTA265×48px 유지, body305=scroll305 |
 
 확대 modal의 티켓 내부 pan만 width231→scroll720으로 의도된 수평 스크롤이다. scrollLeft489 끝까지 이동해 NRT/A03 및 승객명 끝이 보이는 screenshot을 확인했다. modal 본체는 가로 overflow가 없고 아래 정보는 modal 내부 세로 scroll로 접근한다.
 
@@ -111,13 +111,13 @@ U4가 정상발급 및 불확실결과 복원 시 `setTicket`과 `navigate('/dep
 
 Aside Browser의6006 전용 탭에서 최신 소스 안정 후 확인했다. 실제 App에 이메일/닉네임을 입력하고 확정 결과에서 확인 CTA를 누른 즉시 세로390×844에서 `/issuer`와 printing이 나타났다. DOM MutationObserver 기록은 printing89ms→complete1678ms로 실제 간격1589ms였다. 출력 중667×375→390×844→844×390→390×844로 바꾸어도 모든 샘플에서 동일 DOM 티켓1장과 `/issuer`가 유지됐고 완료가 지연되거나 추가 출력되지 않았다. 최종 탑승권 보기 CTA 클릭 후 `/ticket` 및 같은 JASON JEONG / 독일 / BER / A03 결과가 표시됐다. 내부 printingStartedAt은 노출하거나 임의 변경하지 않았으며, 방향 변화에 따른 타이머 유지 판정은 완료 시각과 단일 DOM 관찰에 근거한다.
 
-| 최신 대표 상태    | CSS viewport | 실제 결과                                                                                                 |
-| ----------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
-| 세로 출력 긴 이름 | 320×667      | 264×164.80px,가로비율1.602:1,body320=scroll320,이름전체표시                                               |
-| 세로 출력 긴 이름 | 390×844      | 334×190.16px,가로비율1.756:1,body390=scroll390                                                            |
-| 세로 출력 긴 이름 | 500×900      | 444×209.52px,가로비율2.119:1,body500=scroll500                                                            |
-| 동작 줄이기 출력  | 390×844      | 단일티켓334×175.58px,paper transform none,즉시표시                                                        |
-| 확대 긴 이름      | 320×667      | ticket720×354.64px,modal286=scroll286,body320=scroll320,의도된내부pan231→720,label14.36px,닫기61.7×52.4px |
+| 최신 대표 상태 | CSS viewport | 실제 결과 |
+| --- | --- | --- |
+| 세로 출력 긴 이름 | 320×667 | 264×164.80px,가로비율1.602:1,body320=scroll320,이름전체표시 |
+| 세로 출력 긴 이름 | 390×844 | 334×190.16px,가로비율1.756:1,body390=scroll390 |
+| 세로 출력 긴 이름 | 500×900 | 444×209.52px,가로비율2.119:1,body500=scroll500 |
+| 동작 줄이기 출력 | 390×844 | 단일티켓334×175.58px,paper transform none,즉시표시 |
+| 확대 긴 이름 | 320×667 | ticket720×354.64px,modal286=scroll286,body320=scroll320,의도된내부pan231→720,label14.36px,닫기61.7×52.4px |
 
 320 긴이름의 최초1.23:1 비율은 designer에게 증거를 보내 여백을 교정했고 최종1.602:1을 다시 측정했다. 글자 크기를 줄여 해결하지 않았다. 출력창 overflow hidden과 출력 중 음수 paper translate를 실제 DOM으로 확인했다. 확정 후 screenshot에서 종이가 슬롯 아래에 전부 표시되고 긴 이름이 빠짐없이 줄바꿈하는 모습을 직접 확인했다. 확대 label 회귀는 designer가 하한을 복구한 이후 다시 확인했다. props ReducedMotionPrinting은 표현의 즉시 표시 검사이며 OS prefers-reduced-motion 설정을 새로 변경한 증거는 아니다.
 
@@ -159,13 +159,13 @@ Aside6006 전용 탭에서 UI 안정 이후 실제 CSS iframe viewport320×667 /
 
 기본390 ready에서는 큰 국가 JAPAN이 먼저 읽히고, 별도 승객명 행이 그 아래에 있으며 하단의 큰 NRT와 작은 A03이 목적지·게이트를 구분한다. 같은 작은14칸이 반복되던 평평한 위계와 과도한 행 박스 반복이 줄었다. 국가의 큰 판, 승객명의 보조 행, 하단 공항과 게이트의 크기 차이가 각각 읽혀 패널 존재감과 정보 구분이 개선됐다. 이는 직접 시각 평가이며 슬롯 개수 충족만으로 내린 판정이 아니다.
 
-| 대표 상태       | 실제 결과                                                                                               |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| 기본 ready390   | 국가8·승객12·공항3/게이트3, body390=scroll390, board350=scroll350, CTA48px                              |
+| 대표 상태 | 실제 결과 |
+| --- | --- |
+| 기본 ready390 | 국가8·승객12·공항3/게이트3, body390=scroll390, board350=scroll350, CTA48px |
 | 영국/긴 승객320 | UNITED / KINGDOM 두 행으로 단어 보존, 승객32graphemes 세 행 유지, body305=scroll305, board265=scroll265 |
-| 영국/긴 승객500 | 국가·승객·공항·게이트가 모두 분리돼 읽히며 body500=scroll500, board460=scroll460                        |
-| 호주320         | AUSTRALIA가10칸 한 행으로 유지되며 잘리지 않음, body305=scroll305                                       |
-| Unicode320/500  | é·👩🏽‍✈️·👨‍👩‍👧‍👦가 각각 하나의 glyph slot이며12칸 다음 행에서도 분리/누락 없음                                   |
+| 영국/긴 승객500 | 국가·승객·공항·게이트가 모두 분리돼 읽히며 body500=scroll500, board460=scroll460 |
+| 호주320 | AUSTRALIA가10칸 한 행으로 유지되며 잘리지 않음, body305=scroll305 |
+| Unicode320/500 | é·👩🏽‍✈️·👨‍👩‍👧‍👦가 각각 하나의 glyph slot이며12칸 다음 행에서도 분리/누락 없음 |
 
 320 실제 CSS font/판 높이는 국가24px/56px, 승객16px/36px, 공항32px/60px, 게이트24px/60px였다. 긴 값은 세로 스크롤을 사용하며 이름이나 확인 버튼을 숨기지 않는다. 500에서는 더 넓어진 판과 여백으로 긴 값도 읽기 쉬웠다. 초기 blank는 동일한 국가 판을 유지하며 기존 phase 공개 규칙을 따른다.
 
@@ -264,3 +264,33 @@ SingleFlapInspection은 제품에서 export한 실제 FlapCell을 재사용한�
 아래판92%의-2deg는 housing 안쪽 반발이라는 검토 후+2deg로 교정됐다. 신규 source에서2초 검사1912ms 단면인 flap-v2-landing92-positive.png를 직접 확인해 B 정착/과한 bounce나 old A 겹침 없음으로 판정했다. 기본110ms 실제 재실행은 mutation 관측 뒤 RAF samples로 상부0→-90,하부+90→0 진행을 확인했다(상부13~62ms/하부79~130ms, 시작 관측 지연 포함). 짧은110ms의 연속 육안/영상 인상은 별도 확보하지 못했으므로 느린 단면과 수치만으로 정상 속도 미학을 완전 검증했다고 주장하지 않는다. 실제 live hook도 ready 이후 노란 행을 클릭해 발권 중 상태로 전환됐다. 임시 observer는 모두 제거했다.
 
 stories scanner8파일3hits는 Unicode grapheme fixture·토큰 비교 gap·airport mono sample로 intentional이며 신규 confirmed slop은 없었다. 부모 집계는 최종 check/앱·Storybook build 통과,88 tests pass/42 skip/0 fail/642 assertions다. 이 자동 집계와 이번 대표 단면·클릭 관측은 분리한다.
+
+### 컨테이너 이동·영문 상태·귀국 최종 계약
+
+소스가 src/containers/ticket으로 이동한 경로를 유지했다. 기존6006 devserver의 alias import 실패는 현재 vite.config를 재독입하는 정확 해당 서버 재시작으로 해결됐고 별도alias설정/옛경로복원은 하지 않았다. 현재 detached bun41328/node41329/127.0.0.1:6006/HTTP200이며 Tailscale설정은 보존됐다.
+
+NZ 표기 선택으로 catalog 최장 AUSTRALIA9,국가9열/상태8열이다. 긴 국가+승객 fixture는 AUSTRALIA/호주/SYDNEY/SYD로 갱신했다. English DELAYED/BOARDING/DEPARTED를667/844 실CSS iframe에서 직접 캡처해 읽기·잘림·열정렬을 확인했다. 중간 ORIGIN 캡처는 최종 header/KOREA 요구 전 이력이며 최종 수용 근거로 사용하지 않는다. 최신 live는 details 중 국가JAPAN5glyph wrapper만 이동하는 캡처와 DEPARTURES옆5glyph 정착을 확인했고 추가 빈판은 없었다. 실제 사용자 destination은 KOREA였다. 기기18:06과 사용자TIME18:06이 일치하며 이후 mock rerender·667resize 뒤에도18:06을 유지했다. 844body844=scroll844,667×375는 Storybook decorator세로padding 때문에 세로scrollbar가 생겨body652=scroll652였으며 가로overflow는 없었다. 이 결과는 실앱의 세로핏과 구분한다.
+
+귀국 공통 saveRegion의main/stub은 FROM NRT TOKYO/NARITA→TO ICN SEOUL/INCHEON/단일article임을 확인했다. 동일 live 사용자 행 선택 후 발권완료main/stub도 BOARDING18:06과같은귀국방향을 유지했다. 이번scope는 saveDOM방향이며 새PNG다운로드 성공으로 주장하지 않는다. evidence는 Aside2026-10-10_YL3Am9EesJsCSsfy/artifacts의 final-country-header-844.png,final-country-header-ready-844.png,final-country-header-ready-667.png,return-ticket-save-region.png다.
+
+이동된 ticket stories scanner5파일1hit는 Unicode grapheme 이름fixture로 intentional이다. 새confirmed slop은 없었다. 부모 최신집계는143 pass/42 skip/0 fail/922 assertions,앱·Storybook build 성공이다. 전체 motion/performance 검증을 재실행하지 않고 새 header/localclock/KOREA/귀국 route 계약만 대표 확인했다.
+
+### 실제 앱 헤더 잉크·주변 mock 시각 교정
+
+최신 사용자 지적은 나라헤더가제목보다커보이고시각이사용자18시대와mock15시대로멀다는 것이었다. 첫26px 박스교정만으로 통과처리하지 않고 h1의 cap trim 적용/출발안내DOM삭제와 시간helper교정을 합쳐 실제5173 preview same-origin iframe에서 확인했다. CSS.supports(text-box:trim-both cap alphabetic)=true였다.844×390에서 title ink box19.84px/나라glyph17.52px,중심41.00/40.99px로 정렬됐고body844=scroll844/height390였다. 사용자18:11 주변mock17:23/17:35/17:47/17:59/18:23으로 가까운시각이배치됐다.844 전체캡처는 outer창395폭에서잘려 수치와부분기록으로만 분리한다.
+
+667×375 실제iframe은 outer395에맞춰CSS scale.55로전체촬영했으며 실제 내부viewport는667×375 그대로다. titlecap15.66px/나라cap17.38px,중심둘다41.00px로 기존상하어긋남은 사라졌다. 작은폭에서나라잉크가약11%더높다는 실제비율을남기며 box중심만으로 미학통과를 단정하지 않는다. 전체캡처를직접확인해큰국가판불균형이해소됐음을확인했고부모시각검토용 `final-header-ink-time-667-scaled.png`를전달했다. 사용자18:13/mock17:37/17:49/18:01/18:25였고body667=scroll667이었다. 캡처경로는 Aside2026-10-10_YL3Am9EesJsCSsfy/artifacts다.
+
+동시refactor/HMR로owniframe이몇차례사라진것은제품기하실패로분류하지 않았다. 최신bundle대안build시common/index 중간import6건TS2307로막혀옛경로복구나임의수정을하지않았다. 이후부모가동시refactor import정리와최신앱/Storybook build재성공을확인했다.4173서버는추가하지않았고최종actual5173대표관측으로마감했다. owniframe은최종존재0개를확인했고원래landing/root는수정하지않았다. 기존모션/배포/backend검증은반복하지않았다.
+
+최종 header 인수는 높이도 동일하게 맞추는 것으로 강화됐다. expanded header에공통font-size+font-size-adjust:cap-height0.7을 적용한 최신 actual5173 preview에서두viewport를한frame으로측정했다.844 titlecap/glyphcap둘다19.50px/center둘다41.00px,667둘다15.390625px/center둘다40.9921875px였다. computedfont-size-adjust도양쪽cap-height0.7이며가로bodywidth=scrollwidth였다. 이전66711%차이는이최종정규화로대체됐다. header-cap-normalized-667.png(actual667×375/outer395대응scale.44)를직접확인해같은잉크높이·중심으로읽힘을확인하고부모/디자이너에게전달했다. Compacthero/body는새CSSselector밖이며이번관측은expandedheader만이다. ownframe최종0개cleanup완료.
+
+### 최종 900ms 공동 축소·HOME/GDG121·본문 가독성
+
+이전650ms 국가 단독 이동/KOREA 계약은 이번 사용자 요구로 대체됐다. 최신 actual5173 preview를 같은 origin의844×390/667×375 CSS viewport iframe에서 확인했다. fullPage 캡처는 outer395창을 늘리지 않고 iframe 전체 실제 픽셀을 담았으며 물리 휴대폰 검증은 아니다. 두 settled 화면을 직접 열어 확인했고 부모도 두 이미지를 직접 검토했다. HOME/GDG/121 노란 행과 일반 항공사2문자/공항3문자, English 상태가 잘리지 않고 읽힌다. 본문 plain0·작은 glyph·넓어진 categorygap·완화된 seam은 글자 주변 여백과 열 구분을 개선했다.
+
+844는 body width/scrollWidth844/844,height390,제목/나라 capheight19.5/19.5px다.667은667/667,height375,capheight15.390625/15.390625px, matrixbottom317px로 넘침이 없다.844의0판은24.20×37px/glyph12.13×19.05px로 가로·세로 여백을 유지했다. 모션 대표 관측은 hold progress.2466에서 board scale3/국가glyph58.5px, shrink progress.5799에서 scale2.42571/glyph47.30px, settled에서 scale1/glyph19.5px였다. country와 board가 같은 비율로 축소됨을 확인했다.900ms는 source 계약이며 실제 샘플로 정확한 wall-clock900ms나60fps CPU 성능을 주장하지 않는다.
+
+최종 이미지: `/Users/junhyeok_work/.aside/u/0/sessions/2026-10-10_OteKNq1Jpc6wWKMT/artifacts/final-readable-home-844.png`, `final-readable-home-667.png`. 대표 모션은 같은 경로의 `polish-844-formed-hold.png`, `polish-844-shrink-middle.png`, `polish-844-settled.png`다. 부모는 최신 앱 build exit0 및 실제 HOME/GDG121/티켓GDG121 source readback을 보고했다. 현재 변경만 대표 확인했으며 기존 모션/클릭/reduced/portrait 전체 회귀는 반복하지 않았다. 최종 사용자 요청으로 추가 클릭은 생략했다. own iframe quality-final-polish는 cleanup readback에서0개이며 원래 landing/root는 보존했다.
+
+최종 설명 갱신 뒤 kill-ai-slop은 DepartureReveal 범위10파일/2groups/8hits였다. Departure.stories.tsx의 Unicode emoji는 grapheme 보존 fixture, departureBoardRows/panelSlots tests의5hits도 Unicode 단위 검증으로 intentional이다. departure-reveal.css의 DIN/mono2hits는 승인된 공항 플랩 폰트로 intentional이다. 이 범위 신규 confirmed slop은 없으며 다른 담당 소스는 수정하지 않았다.

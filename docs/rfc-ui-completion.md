@@ -149,18 +149,18 @@ flowchart LR
 
 일부 증거와 rubric 전체 통과를 구분한다. 각 배점은 모든 조건 통과 후 부여하며 현재 총점은 보류한다. 부모의 실제 5173 QA, `storybook-quality.md`의 6006 CSS viewport/interaction 및 독립 readback을 반영했다. 문서 담당은 브라우저를 재조작하지 않았다.
 
-| 배점 항목                  | 현재 근거                                                                                                           | 남은 조건 / 상태                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 정상 흐름·복원10           | AppFlow21stepsPass·부모신규7초대기·실제App rotate→printing→complete→ticket 결과일치·ATH/DEL복원·preview gate/replay | 주요 정상범위 runtime·최종 전역검사 통과                                          |
-| 오류·재시도·재발급10       | 제품 입력오류/취소·FCO→ATH/A03/소진·참가자변경·서비스 실패보존tests                                                 | 실패/대안없음·중복/timeout 최종 제품 integration 경로 미검증                      |
-| 티켓·확대·저장·인원10      | 실제PNG JASON/DEL/A03 직접확인·확대Escape초점복귀·readablemode/긴값story                                            | 저장실패·집계 재시도 제품경로·긴이름PNG 미검증                                    |
-| 물리플립10                 | wheel-review 순서·힌지·정착시각·wheeltests·실제App 약7초확인대기                                                    | 긴입력별 전체시간/6~8초 차이 최종 대조 미검증                                     |
-| 확인·방향·reduced-motion10 | 상태tests·reducedstory·실제App 세로0장/반복회전동일1장/1712ms완료/2113ms동일1장·완료CTA 결과일치                    | 일반모션 CSS runtime 통과, OS설정의 전체App reduced-flow 별도검증 필요            |
-| viewport10                 | 대표320/390/500·667×375/844×390·500px상한·overflow readback                                                         | 모든 제품화면/오류를 모든폭에서 검증한 증거 아님                                  |
-| 긴이름·확대·기기10         | 긴이름wrap·CSSroot200%reflow·확대pan/scroll                                                                         | 브라우저zoom/OS글자설정·실제폰키보드·safe-area 미검증                             |
-| 접근성15                   | 대표axe·수동대비·제품확대/취소trigger복귀·제목focus코드수정                                                         | 전체 제품keyboard/제목실제focus/스크린리더 결과알림/오류상태 대조 미검증          |
-| Storybook5                 | 37stories·대표play·AppFlow21stepsPass·실제App수동회전·viewport/a11y·최종build                                       | 최종check/build/Storybookbuild exit0. 모든story 개별axe/viewport 통과 주장은 아님 |
-| 카피·slop·경계10           | 최종src39파일3그룹14hit intentional/confirmed없음·승인CTA/문의URL/제거사항·demo고지 source대조                      | 해당검토 근거확보. 전체시각품질의100점 의미로 확대하지 않음                       |
+| 배점 항목 | 현재 근거 | 남은 조건 / 상태 |
+| --- | --- | --- |
+| 정상 흐름·복원10 | AppFlow21stepsPass·부모신규7초대기·실제App rotate→printing→complete→ticket 결과일치·ATH/DEL복원·preview gate/replay | 주요 정상범위 runtime·최종 전역검사 통과 |
+| 오류·재시도·재발급10 | 제품 입력오류/취소·FCO→ATH/A03/소진·참가자변경·서비스 실패보존tests | 실패/대안없음·중복/timeout 최종 제품 integration 경로 미검증 |
+| 티켓·확대·저장·인원10 | 실제PNG JASON/DEL/A03 직접확인·확대Escape초점복귀·readablemode/긴값story | 저장실패·집계 재시도 제품경로·긴이름PNG 미검증 |
+| 물리플립10 | wheel-review 순서·힌지·정착시각·wheeltests·실제App 약7초확인대기 | 긴입력별 전체시간/6~8초 차이 최종 대조 미검증 |
+| 확인·방향·reduced-motion10 | 상태tests·reducedstory·실제App 세로0장/반복회전동일1장/1712ms완료/2113ms동일1장·완료CTA 결과일치 | 일반모션 CSS runtime 통과, OS설정의 전체App reduced-flow 별도검증 필요 |
+| viewport10 | 대표320/390/500·667×375/844×390·500px상한·overflow readback | 모든 제품화면/오류를 모든폭에서 검증한 증거 아님 |
+| 긴이름·확대·기기10 | 긴이름wrap·CSSroot200%reflow·확대pan/scroll | 브라우저zoom/OS글자설정·실제폰키보드·safe-area 미검증 |
+| 접근성15 | 대표axe·수동대비·제품확대/취소trigger복귀·제목focus코드수정 | 전체 제품keyboard/제목실제focus/스크린리더 결과알림/오류상태 대조 미검증 |
+| Storybook5 | 37stories·대표play·AppFlow21stepsPass·실제App수동회전·viewport/a11y·최종build | 최종check/build/Storybookbuild exit0. 모든story 개별axe/viewport 통과 주장은 아님 |
+| 카피·slop·경계10 | 최종src39파일3그룹14hit intentional/confirmed없음·승인CTA/문의URL/제거사항·demo고지 source대조 | 해당검토 근거확보. 전체시각품질의100점 의미로 확대하지 않음 |
 
 실제 Sheets/Firebase 운영 연결, 서버 동시성·멱등 트랜잭션, 배포와 물리 기기 검증은 확보 증거에 포함되지 않는다. 다운로드 파일 확인은 사진첩 저장 완료와 별개다.
 

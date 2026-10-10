@@ -1,7 +1,18 @@
 export default {
-  semi: false,
+  semi: true,
+  printWidth: 120,
+  tabWidth: 2,
+  useTabs: false,
   singleQuote: true,
   trailingComma: 'all',
+  bracketSpacing: true,
+  htmlWhitespaceSensitivity: 'css',
+  bracketSameLine: false,
+  jsxSingleQuote: false,
+  quoteProps: 'as-needed',
+  arrowParens: 'always',
+  proseWrap: 'never',
+  endOfLine: 'auto',
   plugins: ['prettier-plugin-tailwindcss'],
-  tailwindStylesheet: './src/index.css',
-}
+  tailwindStylesheet: './src/styles/globals.css',
+};

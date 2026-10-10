@@ -3,7 +3,7 @@
 ## Current version — clear index-finger side pose
 
 - Built-in image_gen; original `/Users/junhyeok_work/.codex/generated_images/01a1216c-b92f-7181-8891-e2b50093a764/exec-fd03ae0e-9c11-4fe8-8051-5b83972a87a9.png`.
-- Current product asset: `src/assets/pointing-hand-3d-v2.webp`, 240×253, 6,468 bytes, true alpha. Parent reviewed the separate thumb and three curled fingers before integration.
+- Current product asset: `src/containers/ticket/components/DepartureReveal/assets/pointing-hand-3d-v2.webp`, 240×253, 6,468 bytes, true alpha. Parent reviewed the separate thumb and three curled fingers before integration.
 - Display 38×40, opacity0.65. Original index tip center x247/1222, y141/1287 anchors to the yellow row center. Never rotated upside down.
 - Two short taps then fade and actual DOM removal at 1300ms; reduced motion is a short static cue removed at 900ms. The previous palm-front asset was rejected and is no longer consumed.
 
@@ -14,7 +14,7 @@ Use case: stylized-concept. A tiny UI tapping-hand 3D cutout, genuine transparen
 ## Superseded first version
 
 - Built-in image_gen, transparent-background generation. Source: `/Users/junhyeok_work/.codex/generated_images/01a1216c-b92f-7181-8891-e2b50093a764/exec-2ba78ee0-7dba-43f0-a856-62a76736f23f.png`.
-- Product asset: `src/assets/pointing-hand-3d.webp`, 256×384, 10,980 bytes. Alpha range 0–255; corner alpha 0.
+- Product asset: `src/containers/ticket/components/DepartureReveal/assets/pointing-hand-3d.webp`, 256×384, 10,980 bytes. Alpha range 0–255; corner alpha 0.
 - Measured fingertip center: x128/256, y6/384. UI anchors this point to the selected row center, rather than anchoring the image bounding box.
 - Display 56×84; 180° reversal near the bottom places the hand body above the target. Animation uses transform only, two short taps, then stops. Reduced motion is static.
 

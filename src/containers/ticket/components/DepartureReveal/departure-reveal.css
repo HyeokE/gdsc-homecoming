@@ -1,0 +1,547 @@
+.departure-reveal {
+  --font-flap: 'DIN Condensed', 'Arial Narrow', var(--font-mono);
+  container-type: inline-size;
+  overflow: clip;
+}
+.departure-title:focus {
+  outline: none;
+}
+.departure-board {
+  position: relative;
+  isolation: isolate;
+  transform-origin: var(--board-origin-x, 50%) var(--board-origin-y, 50%);
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  --board-inset: 8px;
+  --category-gap: clamp(12px, 2cqi, 18px);
+  --plate-gap: clamp(2px, 0.3cqi, 3px);
+  --row-gap: 6px;
+  --header-font-size: clamp(1.375rem, 3.5cqi, 2rem);
+  --flight-grid: repeat(var(--time-columns, 5), minmax(0, 1fr)) var(--category-gap)
+    repeat(var(--country-columns, 4), minmax(0, 1fr)) var(--category-gap)
+    repeat(var(--airline-columns, 3), minmax(0, 1fr)) var(--category-gap)
+    repeat(var(--flight-columns, 3), minmax(0, 1fr)) var(--category-gap) repeat(var(--gate-columns, 3), minmax(0, 1fr))
+    var(--category-gap) repeat(var(--status-columns, 8), minmax(0, 1fr));
+  padding: var(--board-inset);
+  border-radius: 2px;
+}
+.departure-board__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--ui-board);
+  background: var(--ui-surface-raised);
+  box-shadow:
+    inset 0 1px 0 var(--ui-border),
+    0 3px 0 var(--ui-board);
+}
+.departure-board__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 4px 3px 10px;
+  font-size: 0.75rem;
+}
+.departure-board__header h1 {
+  font-family: var(--font-flap);
+  font-size: var(--header-font-size);
+  font-weight: 700;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+  letter-spacing: 0.025em;
+}
+.departure-board__matrix {
+  --panel-height: 37px;
+  --panel-cell-width: calc(
+    (
+        100cqi - var(--board-inset) * 2 - var(--matrix-track-gaps, 30) * var(--plate-gap) - var(--category-gap) *
+          var(--category-gap-count, 5)
+      ) /
+      var(--matrix-columns)
+  );
+  --panel-font-size: min(calc(var(--panel-height) * 0.72), calc(var(--panel-cell-width) * 1.1));
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--flight-grid);
+  grid-auto-rows: var(--panel-height);
+  column-gap: var(--plate-gap);
+  row-gap: var(--row-gap);
+  background: var(--ui-surface-raised);
+  font-family: var(--font-flap);
+  border-block: 2px solid var(--ui-surface-raised);
+  box-shadow:
+    0 -1px 0 rgb(244 240 230 / 8%),
+    0 1px 0 rgb(244 240 230 / 8%);
+}
+.departure-row-action {
+  position: absolute;
+  z-index: 5;
+  inset: -3px 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--palette-google-yellow);
+  border-radius: 1px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-feedback),
+    background-color var(--motion-feedback);
+}
+.departure-row-action:disabled {
+  border-color: transparent;
+  pointer-events: none;
+  cursor: default;
+}
+.departure-row-action:not(:disabled):hover {
+  background: rgb(251 188 5 / 5%);
+}
+.departure-row-action:not(:disabled):active {
+  background: rgb(251 188 5 / 10%);
+}
+.departure-row-action:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}
+.departure-row-guide {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38px;
+  height: 40px;
+  /* Measured index tip: (247/1222, 141/1287), not the image center. */
+  transform: translate(-20.213%, -10.956%);
+  opacity: 0.65;
+  pointer-events: none;
+  user-select: none;
+  animation: departure-guide-lifetime 1300ms linear forwards;
+}
+.departure-row-guide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: departure-guide-tap 440ms ease-in-out 120ms 2;
+}
+@keyframes departure-guide-tap {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  45% {
+    transform: translate(-2px, -2px);
+  }
+}
+@keyframes departure-guide-lifetime {
+  0%,
+  80% {
+    opacity: 0.65;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.departure-board--ready .departure-row-action {
+  animation: departure-row-outline 280ms ease-out both;
+}
+.departure-board--ready .flap-letter--primary {
+  animation: departure-row-settle 280ms ease-out both;
+}
+@keyframes departure-row-settle {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes departure-row-outline {
+  from {
+    border-color: transparent;
+  }
+  to {
+    border-color: var(--palette-google-yellow);
+  }
+}
+.departure-column-headers {
+  display: grid;
+  grid-template-columns: var(--flight-grid);
+  column-gap: var(--plate-gap);
+  padding-block: 2px 6px;
+  color: var(--ui-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+.departure-column-headers > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.departure-column-headers strong {
+  font-weight: 500;
+}
+.departure-column-headers small {
+  font-size: 0.6875rem;
+}
+.departure-country {
+  --country-cell-width: clamp(17px, 2.5cqi, 19px);
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  flex: 0 0 auto;
+  width: calc(var(--country-count) * var(--country-cell-width) + (var(--country-count) - 1) * var(--plate-gap));
+}
+.departure-board__header .flap-letters--country {
+  --panel-height: 26px;
+  --panel-font-size: min(24px, calc(var(--country-cell-width) * 1.4));
+}
+@supports (font-size-adjust: cap-height 0.7) {
+  .departure-board__header h1 {
+    font-size-adjust: cap-height 0.7;
+  }
+  .departure-board__header .flap-letters--country {
+    --panel-font-size: var(--header-font-size);
+    font-size-adjust: cap-height 0.7;
+  }
+}
+.departure-board--compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 96px);
+  padding: 0;
+}
+.departure-board--compact .departure-board__matrix {
+  display: none;
+}
+.departure-board--compact .departure-board__header {
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+}
+.departure-board--compact .departure-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Hero uses the exact final panel geometry at 3x, so shell formation
+   cannot jump the glyph, plate, seam or inter-plate spacing. */
+.departure-board--compact .departure-country {
+  transform: scale(3);
+  transform-origin: center;
+}
+.flap-letters {
+  display: grid;
+  gap: var(--row-gap);
+  width: 100%;
+  background: transparent;
+  font-family: var(--font-flap);
+}
+.flap-panel-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--panel-columns), minmax(0, 1fr));
+  gap: var(--plate-gap);
+  background: transparent;
+}
+.flap-letter {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: var(--panel-height);
+  background: var(--ui-surface-raised);
+  border-radius: 1px;
+  font-size: var(--panel-font-size);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  perspective: 140px;
+  perspective-origin: 50% 50%;
+}
+.flap-letter--primary {
+  color: var(--palette-google-yellow);
+}
+.flap-letter--wide {
+  font-size: min(calc(var(--panel-height) * 0.92), calc(var(--panel-cell-width) * 0.9));
+}
+.flap-letter::before {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  border: 1px solid var(--ui-board);
+  box-shadow: inset 0 1px 0 rgb(244 240 230 / 8%);
+  content: '';
+  pointer-events: none;
+}
+/* Fixed halves crop the same centered full glyph; the panel never transforms. */
+.flap-half,
+.flap-upper,
+.flap-lower {
+  position: absolute;
+  inset-inline: 0;
+  height: 50%;
+  overflow: hidden;
+  background: var(--ui-surface-raised);
+}
+.flap-half--top,
+.flap-upper {
+  top: 0;
+  box-shadow: inset 0 2px 0 rgb(244 240 230 / 6%);
+}
+.flap-half--bottom,
+.flap-lower {
+  bottom: 0;
+  box-shadow: inset 0 -1px 0 rgb(8 10 12 / 25%);
+}
+.flap-moving {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.flap-moving::before {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  bottom: 0;
+  height: 50%;
+  background: rgb(8 10 12 / 60%);
+  content: '';
+  animation: flap-cast-shadow var(--flap-duration) linear both;
+  animation-delay: calc(0ms - var(--flap-elapsed));
+}
+.flap-half__glyph {
+  position: absolute;
+  inset-inline: 0;
+  height: 200%;
+  display: grid;
+  place-items: center;
+}
+/* Center the ink cap box, not the font's unequal ascender/descender line box.
+   The same inner box is reused by static and moving halves. Unsupported engines
+   retain the existing centered line-box fallback without font-specific offsets. */
+.flap-half__glyph > span {
+  display: block;
+  white-space: pre;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+.flap-half--top .flap-half__glyph {
+  top: 0;
+}
+.flap-half--bottom .flap-half__glyph {
+  bottom: 0;
+}
+.flap-upper .flap-half__glyph {
+  top: 0;
+}
+.flap-lower .flap-half__glyph {
+  bottom: 0;
+}
+.flap-upper,
+.flap-lower {
+  z-index: 2;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flap-upper {
+  transform-origin: 50% 100%;
+  box-shadow:
+    inset 0 2px 0 rgb(244 240 230 / 6%),
+    inset 0 -1px 0 rgb(8 10 12 / 70%);
+}
+.flap-lower {
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  box-shadow:
+    inset 0 1px 0 rgb(244 240 230 / 15%),
+    inset 0 -1px 0 rgb(8 10 12 / 25%);
+}
+.flap-upper::after,
+.flap-lower::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+}
+.flap-upper::after {
+  background: linear-gradient(rgb(8 10 12 / 12%), rgb(8 10 12 / 72%));
+  opacity: 0;
+}
+.flap-lower::after {
+  background: linear-gradient(rgb(8 10 12 / 68%), rgb(8 10 12 / 8%));
+  opacity: 1;
+}
+.flap-letter::after {
+  position: absolute;
+  z-index: 3;
+  inset-inline: 0;
+  top: calc(50% - 0.5px);
+  height: 1px;
+  background: var(--ui-board);
+  box-shadow: 0 1px 0 rgb(244 240 230 / 8%);
+  content: '';
+}
+/* Only the two moving leaves restart for each ordered wheel step. */
+.flap-moving .flap-upper {
+  animation: flap-fold-upper var(--flap-fold-duration) cubic-bezier(0.45, 0, 0.9, 0.6) both;
+  animation-delay: calc(0ms - var(--flap-elapsed));
+}
+.flap-moving .flap-lower {
+  animation: flap-open-lower var(--flap-fall-duration) linear both;
+  animation-delay: calc(var(--flap-fold-duration) - var(--flap-elapsed));
+}
+.flap-moving .flap-upper::after {
+  animation: flap-upper-shadow var(--flap-fold-duration) linear both;
+  animation-delay: calc(0ms - var(--flap-elapsed));
+}
+.flap-moving .flap-lower::after {
+  animation: flap-lower-shadow var(--flap-fall-duration) linear both;
+  animation-delay: calc(var(--flap-fold-duration) - var(--flap-elapsed));
+}
+@keyframes flap-cast-shadow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.7;
+  }
+  75% {
+    opacity: 0.25;
+  }
+}
+@keyframes flap-fold-upper {
+  from {
+    transform: rotateX(0);
+    visibility: visible;
+  }
+  to {
+    transform: rotateX(-90deg);
+    visibility: hidden;
+  }
+}
+@keyframes flap-open-lower {
+  0% {
+    transform: rotateX(90deg);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.8, 0.65);
+  }
+  82% {
+    transform: rotateX(0);
+    animation-timing-function: ease-out;
+  }
+  92% {
+    transform: rotateX(2deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+@keyframes flap-upper-shadow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+@keyframes flap-lower-shadow {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.departure-reveal[data-reduced-motion='true'] .flap-upper,
+.departure-reveal[data-reduced-motion='true'] .flap-lower {
+  display: none;
+}
+.departure-reveal[data-reduced-motion='true'] .flap-half__glyph {
+  animation: none;
+  visibility: visible;
+  opacity: 1;
+}
+.departure-reveal[data-reduced-motion='true'] .departure-row-action,
+.departure-reveal[data-reduced-motion='true'] .flap-letter--primary {
+  animation: none;
+}
+.departure-reveal[data-reduced-motion='true'] .departure-row-guide {
+  animation: departure-guide-lifetime 900ms steps(1, end) forwards;
+}
+.departure-reveal[data-reduced-motion='true'] .departure-row-guide img {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .departure-board--ready .departure-row-action,
+  .departure-board--ready .flap-letter--primary {
+    animation: none;
+  }
+  .departure-row-guide {
+    animation: departure-guide-lifetime 900ms steps(1, end) forwards;
+  }
+  .departure-row-guide img {
+    animation: none;
+  }
+  .flap-upper,
+  .flap-lower {
+    display: none;
+  }
+  .flap-half__glyph {
+    animation: none;
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+/* Elapsed-driven formation: country remains fully visible throughout. */
+.departure-board--expanded .departure-title {
+  opacity: var(--board-title-visibility, 1);
+  transform: translateY(calc((1 - var(--board-title-visibility, 1)) * 2px));
+}
+.departure-board--expanded .departure-column-headers {
+  opacity: var(--board-columns-visibility, 1);
+  transform: translateY(calc((1 - var(--board-columns-visibility, 1)) * 2px));
+}
+.departure-board--expanded .departure-board__matrix {
+  opacity: var(--board-matrix-visibility, 1);
+  transform: translateY(calc((1 - var(--board-matrix-visibility, 1)) * 3px));
+}
+
+/* Familiar plain-zero glyphs, with the same restrained condensation on every
+   static and moving half. Fixed cell geometry remains unchanged across fonts. */
+.departure-board__matrix .flap-letter {
+  font-family: Arial, 'Helvetica Neue', sans-serif;
+  font-weight: 700;
+}
+.departure-board__matrix .flap-half__glyph > span {
+  transform: scaleX(0.82);
+}
+.departure-board__matrix .flap-letter::before {
+  border-color: rgb(8 10 12 / 35%);
+  box-shadow: inset 0 1px 0 rgb(244 240 230 / 4%);
+}
+.departure-board__matrix .flap-letter::after {
+  background: rgb(8 10 12 / 28%);
+  box-shadow: none;
+}
+.departure-board__matrix .flap-half--top {
+  box-shadow: inset 0 1px 0 rgb(244 240 230 / 3%);
+}
+.departure-board__matrix .flap-half--bottom {
+  box-shadow: inset 0 -1px 0 rgb(8 10 12 / 15%);
+}

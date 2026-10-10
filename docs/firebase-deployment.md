@@ -25,12 +25,12 @@ bun run deploy:firebase
 
 기본 명령은 환경 변수·배포 설정 검증 → 포맷·lint·타입 검사 → Firestore 에뮬레이터 테스트 → 프로덕션 빌드 → 빌드 설정 검증 → 실제 배포 순서로 실행한다. 한 단계라도 실패하면 다음 단계로 진행하지 않는다. 테스트가 에뮬레이터를 직접 시작하므로 기존 개발용 에뮬레이터를 먼저 종료해 `127.0.0.1:8080`을 비워야 한다.
 
-| 옵션                   | 동작                                                                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `--dry-run`            | 설정을 검증하고 실행 예정 명령을 출력한다. 검사·테스트·빌드·배포 명령을 실행하지 않는다.                             |
-| `--prebuilt`           | 검사·테스트·빌드를 건너뛰고 기존 `dist/`를 검증해 배포한다. 같은 소스의 검사와 테스트를 이미 통과한 CI에서 사용한다. |
-| `--prebuilt --dry-run` | 기존 빌드의 파일과 Firebase 설정까지 검증한 뒤 예정 배포 명령만 출력한다.                                            |
-| `--help`               | 지원 옵션과 배포 대상을 출력한다.                                                                                    |
+| 옵션 | 동작 |
+| --- | --- |
+| `--dry-run` | 설정을 검증하고 실행 예정 명령을 출력한다. 검사·테스트·빌드·배포 명령을 실행하지 않는다. |
+| `--prebuilt` | 검사·테스트·빌드를 건너뛰고 기존 `dist/`를 검증해 배포한다. 같은 소스의 검사와 테스트를 이미 통과한 CI에서 사용한다. |
+| `--prebuilt --dry-run` | 기존 빌드의 파일과 Firebase 설정까지 검증한 뒤 예정 배포 명령만 출력한다. |
+| `--help` | 지원 옵션과 배포 대상을 출력한다. |
 
 배포 CLI는 대상 프로젝트와 범위를 다음과 같이 고정한다. 다른 프로젝트 또는 Cloud Functions로 배포하는 옵션은 제공하지 않는다.
 
@@ -81,17 +81,17 @@ gh run watch RUN_ID --repo HyeokE/gdsc-homecoming --exit-status
 
 GitHub 저장소 `Settings → Secrets and variables → Actions → Variables`에 설정한다. 아래 Web SDK 값은 브라우저 번들에 들어가는 공개 설정이다. 비공개 인증 정보는 `VITE_` 변수에 넣지 않는다.
 
-| 변수                                | 값의 출처                                                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `VITE_FIREBASE_API_KEY`             | Firebase Web 앱 SDK 설정의 `apiKey`                                                                                |
-| `VITE_FIREBASE_AUTH_DOMAIN`         | `gdsc-homecomming.firebaseapp.com`                                                                                 |
-| `VITE_FIREBASE_STORAGE_BUCKET`      | SDK 설정의 `storageBucket`                                                                                         |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | SDK 설정의 `messagingSenderId`                                                                                     |
-| `VITE_FIREBASE_APP_ID`              | SDK 설정의 `appId`                                                                                                 |
-| `VITE_FIREBASE_MEASUREMENT_ID`      | 선택 사항. 설정만으로 Analytics를 활성화하지 않는다.                                                               |
-| `VITE_ROSTER_LOOKUP_URL`            | 선택 사항. 별도 배포한 공개 Apps Script 웹 앱의 정확한 `https://script.google.com/macros/s/<deployment>/exec` URL. |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER`    | 아래 provider 전체 리소스 경로                                                                                     |
-| `GCP_SERVICE_ACCOUNT`               | 아래 배포 서비스 계정 이메일                                                                                       |
+| 변수 | 값의 출처 |
+| --- | --- |
+| `VITE_FIREBASE_API_KEY` | Firebase Web 앱 SDK 설정의 `apiKey` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `gdsc-homecomming.firebaseapp.com` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | SDK 설정의 `storageBucket` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | SDK 설정의 `messagingSenderId` |
+| `VITE_FIREBASE_APP_ID` | SDK 설정의 `appId` |
+| `VITE_FIREBASE_MEASUREMENT_ID` | 선택 사항. 설정만으로 Analytics를 활성화하지 않는다. |
+| `VITE_ROSTER_LOOKUP_URL` | 선택 사항. 별도 배포한 공개 Apps Script 웹 앱의 정확한 `https://script.google.com/macros/s/<deployment>/exec` URL. |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | 아래 provider 전체 리소스 경로 |
+| `GCP_SERVICE_ACCOUNT` | 아래 배포 서비스 계정 이메일 |
 
 `VITE_FIREBASE_PROJECT_ID=gdsc-homecomming`, `VITE_TICKET_SERVICE=firebase`, `VITE_USE_FIREBASE_EMULATORS=false`는 워크플로에 고정되어 있다. 다음 CLI로 현재 로컬 공개 SDK 설정과 위 OIDC 식별자를 한 번에 등록할 수 있다. 기본 실행은 이름만 출력하는 dry-run이며 `--apply`만 저장소 변수를 변경한다. 등록 후 각 값을 재조회해 일치 여부를 확인한다.
 
@@ -103,7 +103,7 @@ bun run setup:firebase-ci
 bun run setup:firebase-ci --apply
 ```
 
-설정 CLI는 `VITE_ROSTER_LOOKUP_URL`이 없거나 빈 값이면 생략한다. 값이 있으면 정확한 공개 Apps Script `/exec` 주소만 허용하며, 잘못된 호스트·경로·쿼리·인증 정보·공백은 GitHub 호출 전에 거부한다. 기존 저장소 변수 삭제는 수행하지 않는다. 시트 ID·비공개 시트 주소·자격 증명은 공개 설정에 넣지 않는다. 초기 서버 동기화는 4건 읽기·신규 2건·기존 2건 readback을 확인했다. 독립 Apps Script 웹 앱과 이를 사용하는 Hosting 빌드를 배포했으며, 2026-10-10 운영 UI에서 `test@gmail.com`의 실제 조회 요청 및 닉네임 단계 진입을 확인했다. 발권·재발급은 검증 범위에 포함하지 않았다.
+설정 CLI는 `VITE_ROSTER_LOOKUP_URL`이 없거나 빈 값이면 생략한다. 값이 있으면 정확한 공개 Apps Script `/exec` 주소만 허용하며, 잘못된 호스트·경로·쿼리·인증 정보·공백은 GitHub 호출 전에 거부한다. 기존 저장소 변수 삭제는 수행하지 않는다. 시트 ID·비공개 시트 주소·자격 증명은 공개 설정에 넣지 않는다. 초기 서버 동기화는 4건 읽기·신규 2건·기존 2건 readback을 확인했다. 독립 Apps Script 웹 앱과 이를 사용하는 Hosting 빌드를 배포했으며, 2026-10-10 테스트 계정 분리 전 운영 UI에서 `test@gmail.com`의 실제 조회 요청 및 닉네임 단계 진입을 확인했다. 발권·재발급은 검증 범위에 포함하지 않았다.
 
 이 설정 CLI는 실제 인증 계정이 `HyeokE`인지 먼저 확인하고, 다른 계정이면 변수를 쓰기 전에 중단한다. 이후 대상 저장소 관리자 권한을 확인하며 코드 push, Google Cloud 설정 변경, 배포 실행은 하지 않는다. 개별 변수는 `gh variable set 변수명 --repo HyeokE/gdsc-homecoming`으로 관리할 수도 있다.
 
@@ -113,16 +113,16 @@ GitHub OIDC를 Workload Identity Federation으로 교환해 배포 서비스 계
 
 설정 대상은 다음과 같다. 현재 상태 항목의 설정 검증 여부를 함께 확인한다.
 
-| 리소스                 | 설정 대상                                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------------- |
-| 프로젝트 번호          | `719021201597`                                                                                          |
-| Workload Identity Pool | `gdg-github-actions`                                                                                    |
-| OIDC Provider          | `github-main`                                                                                           |
-| Provider 전체 경로     | `projects/719021201597/locations/global/workloadIdentityPools/gdg-github-actions/providers/github-main` |
-| 배포 서비스 계정       | `github-firebase-deploy@gdsc-homecomming.iam.gserviceaccount.com`                                       |
-| 허용 저장소            | `HyeokE/gdsc-homecoming`                                                                                |
-| 허용 ref               | `refs/heads/main`                                                                                       |
-| 허용 workflow ref      | `HyeokE/gdsc-homecoming/.github/workflows/firebase-deploy.yml@refs/heads/main`                          |
+| 리소스 | 설정 대상 |
+| --- | --- |
+| 프로젝트 번호 | `719021201597` |
+| Workload Identity Pool | `gdg-github-actions` |
+| OIDC Provider | `github-main` |
+| Provider 전체 경로 | `projects/719021201597/locations/global/workloadIdentityPools/gdg-github-actions/providers/github-main` |
+| 배포 서비스 계정 | `github-firebase-deploy@gdsc-homecomming.iam.gserviceaccount.com` |
+| 허용 저장소 | `HyeokE/gdsc-homecoming` |
+| 허용 ref | `refs/heads/main` |
+| 허용 workflow ref | `HyeokE/gdsc-homecoming/.github/workflows/firebase-deploy.yml@refs/heads/main` |
 
 Provider의 속성 조건은 저장소 ID `1412116288`, 소유자 ID `61281239`, `main`, 위 workflow ref, `push`/`workflow_dispatch` 이벤트로 제한한다. 이 조건을 충족한 GitHub 주체에만 배포 서비스 계정의 `roles/iam.workloadIdentityUser`를 부여한다. 워크플로 파일의 main 조건과 별개로 Google Cloud에서도 같은 경계를 적용한다.
 

@@ -1,6 +1,6 @@
-import type { Preview } from '@storybook/react-vite'
-import { MotionConfig } from 'motion/react'
-import '../src/index.css'
+import type { Preview } from '@storybook/react-vite';
+import { MotionConfig } from 'motion/react';
+import '../src/styles/globals.css';
 
 const preview: Preview = {
   tags: ['autodocs'],
@@ -61,9 +61,7 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => (
-      <MotionConfig
-        reducedMotion={context.globals.reducedMotion ? 'always' : 'user'}
-      >
+      <MotionConfig reducedMotion={context.globals.reducedMotion ? 'always' : 'user'}>
         <main
           className="mx-auto flex min-h-dvh w-full flex-col justify-center px-5 py-8"
           style={{ maxWidth: context.parameters.canvasMaxWidth ?? 500 }}
@@ -71,14 +69,12 @@ const preview: Preview = {
           <Story
             args={{
               ...context.args,
-              reducedMotion:
-                Boolean(context.globals.reducedMotion) ||
-                context.args.reducedMotion,
+              reducedMotion: Boolean(context.globals.reducedMotion) || context.args.reducedMotion,
             }}
           />
         </main>
       </MotionConfig>
     ),
   ],
-}
-export default preview
+};
+export default preview;

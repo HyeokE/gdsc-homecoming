@@ -18,11 +18,11 @@ App과 route guard가 첫 3화면, 저장 결과 전광판, 확인/방향 발권
 
 `node …/kill-ai-slop/scripts/scan.mjs src --json` 실행: 36 files, 3 groups, 14 hits. App 신규 마크업 추가 hit 없음.
 
-| tell                  | hits | 판정        | 이유                                                                                                         |
-| --------------------- | ---: | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| 24 SVG icon           |    1 | intentional | 발권기의 회전 안내 도식이며 사용자가 요청한 orientation 안내다. 그림자/장식 아이콘으로 교체하지 않는다.      |
-| 32 one gap everywhere |    1 | intentional | Storybook 토큰 카탈로그의 반복 정의 목록이다. 제품 화면의 정보 위계를 평탄화한 구조가 아니다.                |
-| 34 tasteful-terminal  |   12 | intentional | 사용자가 정한 공항 전광판/탑승권·행사 브랜드와 그 토큰/Storybook 샘플이다. 확정 영문 mono 스타일을 유지한다. |
+| tell | hits | 판정 | 이유 |
+| --- | --: | --- | --- |
+| 24 SVG icon | 1 | intentional | 발권기의 회전 안내 도식이며 사용자가 요청한 orientation 안내다. 그림자/장식 아이콘으로 교체하지 않는다. |
+| 32 one gap everywhere | 1 | intentional | Storybook 토큰 카탈로그의 반복 정의 목록이다. 제품 화면의 정보 위계를 평탄화한 구조가 아니다. |
+| 34 tasteful-terminal | 12 | intentional | 사용자가 정한 공항 전광판/탑승권·행사 브랜드와 그 토큰/Storybook 샘플이다. 확정 영문 mono 스타일을 유지한다. |
 
 confirmed fix 없음. 서비스 소개 초안은 승인된 문구와 분리해 docs/demo-service.md에 창작 제안으로 명시했다. 초기 프리뷰의 WELCOME ABOARD/모호한 여행 카피는 U2 승인된 LandingScreen으로 대체됐다. source scan은 수동 시각 인수나 접근성 통과를 대신하지 않는다.
 

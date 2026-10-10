@@ -47,27 +47,27 @@ U4/U6의 **주요 데모 런타임과 프리뷰 호환성 검증은 위 범위�
 
 결과: 24파일, 2그룹, 15 hit. taxonomy/detection 및 실제 소스를 읽고 triage했다. UI 수정 전 부모 매니저에게 보고했고 부모가 사용자에게 전달 완료했다. 전체 UI 개선은 사용자 승인 범위이므로 개별 수정 허락을 반복 요청하지 않는다. 이번 담당은 UI 수정 없음.
 
-| 분류                    | file:line                                                                                     | 판단과 조치                                                                                                                |
-| ----------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| intentional / scanner24 | src/components/TicketIssuer.tsx:148                                                           | circle은 가로 회전 안내 폰의 홈 버튼. 장식 마스코트·가짜 브랜드 아이콘이 아니므로 유지                                     |
-| intentional / scanner34 | src/components/DepartureReveal.tsx:121,179,185,194,202,208 및 TicketIssuer.tsx:37,69,76,91,98 | 공항 패널·티켓 mono는 사용자 확정 컨셉. 코드 전용 mono 규칙으로 삭제하지 않음                                              |
-| confirmed / 수동10      | src/App.tsx:24                                                                                | WELCOME ABOARD kicker가 행사 외 새 정보를 주지 않음. 제품 landing 구현 시 제거                                             |
-| confirmed / 임시카피    | src/App.tsx:28-29                                                                             | “우리를 다시 만나게 할 여행을 준비하고 있어요.”는 경험·발권 행동이 없는 임시 안내. 승인/기획된 경험 카피와 행사정보로 교체 |
-| scope gap / 임시CTA     | src/App.tsx:37                                                                                | 연출 미리보기는 현재 preview에 적합하지만 제품 입장 CTA가 아님. 전체 흐름에서는 확정 발권하기 사용, 데모 고지 유지         |
+| 분류 | file:line | 판단과 조치 |
+| --- | --- | --- |
+| intentional / scanner24 | src/containers/ticket/components/TicketIssuer/TicketIssuer.tsx:148 | circle은 가로 회전 안내 폰의 홈 버튼. 장식 마스코트·가짜 브랜드 아이콘이 아니므로 유지 |
+| intentional / scanner34 | src/containers/ticket/components/DepartureReveal/DepartureReveal.tsx:121,179,185,194,202,208 및 TicketIssuer.tsx:37,69,76,91,98 | 공항 패널·티켓 mono는 사용자 확정 컨셉. 코드 전용 mono 규칙으로 삭제하지 않음 |
+| confirmed / 수동10 | src/containers/ticket/TicketContainer.tsx:24 | WELCOME ABOARD kicker가 행사 외 새 정보를 주지 않음. 제품 landing 구현 시 제거 |
+| confirmed / 임시카피 | src/containers/ticket/TicketContainer.tsx:28-29 | “우리를 다시 만나게 할 여행을 준비하고 있어요.”는 경험·발권 행동이 없는 임시 안내. 승인/기획된 경험 카피와 행사정보로 교체 |
+| scope gap / 임시CTA | src/containers/ticket/TicketContainer.tsx:37 | 연출 미리보기는 현재 preview에 적합하지만 제품 입장 CTA가 아님. 전체 흐름에서는 확정 발권하기 사용, 데모 고지 유지 |
 
 charcoal/ivory/Google4색/mono airport panels/종이 shadow/물리 hinge gradient는 intentional 보존한다. one-accent 원칙으로 사용자 확정 팔레트를 삭제하지 않는다. 중첩 카드 등은 실제 렌더 증거 없이 confirmed로 기록하지 않는다. 줄 번호는 초기 scan 시점 기준이며 후속 변경 후 갱신한다.
 
 ## Unit scorecards와 통합 큐 — 최종 런타임 보고 반영
 
-| unit | 현재 근거                                                                                                           | 남은 조건                                                |
-| ---- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| U0   | RFC/DAG/AC/소유권 정리                                                                                              | 제품 점수 대상 아님                                      |
-| U1   | 20국 데모 모델, 최초/재발급/복원/정원/멱등 실패보존 tests 포함21tests244assert 보고                                 | 실제 운영 API·서버 동시성 아님                           |
-| U2   | 5화면/티켓/확대/재발급 modal, grapheme·expanded·focus 수정, 부모 Escape/취소 초점복귀와 Storybook CSS viewport 확인 | 모든 제품 viewport·전체 keyboard/a11y·물리기기 미검증    |
-| U3   | wheel-review 물리힌지/순차휠/정착, 최신 App 확인대기와 반복회전 동일1장/타이머 유지 통과                            | 긴 입력 전체시간과 실제 폰 센서/키보드 미검증            |
-| U4   | 신규·재발급·새로고침복원·참가자변경·실제PNG·preview gate/replay, 두 P1 원인 교정 및 AppFlow21stepsPass              | 최종 전역검사 통과; 모든 failure integration 경로 미검증 |
-| U5   | 37stories, 대표 plays/a11y/CSS viewport/200%reflow/실제 App 수동회전, 기존 정적 build 통과                          | 최종 check/build/37stories 정적build 통과                |
-| U6   | 부모 실제5173 및 독립 readback·source scan, Storybook 실제 hook/route 증거                                          | 엄격100점 항목 전부 통과 아님. 아래 잔여 확인 필요       |
+| unit | 현재 근거 | 남은 조건 |
+| --- | --- | --- |
+| U0 | RFC/DAG/AC/소유권 정리 | 제품 점수 대상 아님 |
+| U1 | 20국 데모 모델, 최초/재발급/복원/정원/멱등 실패보존 tests 포함21tests244assert 보고 | 실제 운영 API·서버 동시성 아님 |
+| U2 | 5화면/티켓/확대/재발급 modal, grapheme·expanded·focus 수정, 부모 Escape/취소 초점복귀와 Storybook CSS viewport 확인 | 모든 제품 viewport·전체 keyboard/a11y·물리기기 미검증 |
+| U3 | wheel-review 물리힌지/순차휠/정착, 최신 App 확인대기와 반복회전 동일1장/타이머 유지 통과 | 긴 입력 전체시간과 실제 폰 센서/키보드 미검증 |
+| U4 | 신규·재발급·새로고침복원·참가자변경·실제PNG·preview gate/replay, 두 P1 원인 교정 및 AppFlow21stepsPass | 최종 전역검사 통과; 모든 failure integration 경로 미검증 |
+| U5 | 37stories, 대표 plays/a11y/CSS viewport/200%reflow/실제 App 수동회전, 기존 정적 build 통과 | 최종 check/build/37stories 정적build 통과 |
+| U6 | 부모 실제5173 및 독립 readback·source scan, Storybook 실제 hook/route 증거 | 엄격100점 항목 전부 통과 아님. 아래 잔여 확인 필요 |
 
 증거 출처: 부모 보고, `storybook-quality.md`, `ux-independent-review.md`. 독립 담당은 마지막 source scan/readback만 수행했고 해당 브라우저/runtime 검증을 재실행하지 않았다.
 
@@ -77,17 +77,17 @@ charcoal/ivory/Google4색/mono airport panels/종이 shadow/물리 hinge gradien
 
 ## U6 범위별 최종 판정과 잔여
 
-| 체크          | 확보된 판정                                                                               | 구체 잔여                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 자동 검사     | 부모최종 check/build/Storybook build exit0,21tests244assert                               | 소유문서 마지막 갱신 후 Prettier 검사. 자동검사가 실기기/API를 증명하지 않음             |
-| 입력 오류     | 제품 형식/미등록/닉네임빈값·입력/오류 유지                                                | 실제 연결·timeout→조회실패/재시도 제품 integration 미검증                                |
-| 복원/재발급   | FCO→ATH/게이트유지/1회소진/새로고침ATH, memberDEL 기존복원·미사용표시                     | UI의 실패/대안없음·중복 요청·집계 재시도는 stories/service와 실제품 구분                 |
-| 모션/회전     | 순차휠·약7초대기·확인전출력없음·세로0장·반복회전동일1장·타이머유지·완료CTA 결과일치       | 긴 이름별6~8초 충족/차이 기록, 실제 폰회전 센서 미검증                                   |
-| 프리뷰        | 기존 두URL/replay/직접issuer확인gate·NRT1장 출력                                          | 통과범위에서 추가 대기 없음                                                              |
-| viewport/확대 | Storybook 대표320/390/500,667×375/844×390·상한500·긴값wrap·확대pan                        | 모든 제품 상태를 모든폭에서 확인한 것은 아님                                             |
-| 텍스트/키보드 | CSS root200%reflow·실제 ESC/trigger복귀                                                   | 브라우저 zoom/OS글자크기·전체Tab/제목focus/스크린리더 알림·실제폰키보드/safe-area 미검증 |
-| PNG           | 실제 파일을 직접 열어 정상JASON/DEL/A03/행사정보·티켓만 포함 확인                         | 긴 이름PNG·저장실패 UI·모바일 다운로드/사진첩 미검증                                     |
-| slop/카피     | 최종src39파일14hit intentional, confirmed없음, 승인 CTA/문의URL/제거사항과 demo 경계 대조 | 전체 시각취향의100점 의미로 확대하지 않음                                                |
+| 체크 | 확보된 판정 | 구체 잔여 |
+| --- | --- | --- |
+| 자동 검사 | 부모최종 check/build/Storybook build exit0,21tests244assert | 소유문서 마지막 갱신 후 Prettier 검사. 자동검사가 실기기/API를 증명하지 않음 |
+| 입력 오류 | 제품 형식/미등록/닉네임빈값·입력/오류 유지 | 실제 연결·timeout→조회실패/재시도 제품 integration 미검증 |
+| 복원/재발급 | FCO→ATH/게이트유지/1회소진/새로고침ATH, memberDEL 기존복원·미사용표시 | UI의 실패/대안없음·중복 요청·집계 재시도는 stories/service와 실제품 구분 |
+| 모션/회전 | 순차휠·약7초대기·확인전출력없음·세로0장·반복회전동일1장·타이머유지·완료CTA 결과일치 | 긴 이름별6~8초 충족/차이 기록, 실제 폰회전 센서 미검증 |
+| 프리뷰 | 기존 두URL/replay/직접issuer확인gate·NRT1장 출력 | 통과범위에서 추가 대기 없음 |
+| viewport/확대 | Storybook 대표320/390/500,667×375/844×390·상한500·긴값wrap·확대pan | 모든 제품 상태를 모든폭에서 확인한 것은 아님 |
+| 텍스트/키보드 | CSS root200%reflow·실제 ESC/trigger복귀 | 브라우저 zoom/OS글자크기·전체Tab/제목focus/스크린리더 알림·실제폰키보드/safe-area 미검증 |
+| PNG | 실제 파일을 직접 열어 정상JASON/DEL/A03/행사정보·티켓만 포함 확인 | 긴 이름PNG·저장실패 UI·모바일 다운로드/사진첩 미검증 |
+| slop/카피 | 최종src39파일14hit intentional, confirmed없음, 승인 CTA/문의URL/제거사항과 demo 경계 대조 | 전체 시각취향의100점 의미로 확대하지 않음 |
 
 점수: **전체 계산 보류 / 100점 선언 불가**. 상태·모델·대표 CSS viewport·실제 브라우저·물리 기기·운영 API는 서로 다른 증거다. 실제 API와 물리 기기 미검증은 제품 코드의 확정 결함이 아니라 현재 검증/연동 경계다. 최종 전체 실패 integration과 접근성 증거도 아직 부족하므로 임의 배점 합산은 하지 않는다.
 

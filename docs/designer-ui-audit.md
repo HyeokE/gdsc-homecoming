@@ -101,3 +101,68 @@
 - 중간 moving scene을 absolute/preserve-3d로 연결하고 판 perspective를 140px로 조정했다. Scene의 opacity/filter/overflow/isolation은 추가하지 않았다. 고정 판과 centered glyph crop은 유지한다.
 - 윗면 -90도/아랫면 +90→0의 앞쪽 낙하 방향을 보존하고 fold45%/fall55% 계약을 소비한다. 면의 경첩 쪽 명암, old 하단에 드리우는 그림자, 마지막 2도 이내 닫힘을 추가한다. 물리 그림자는 사용자 요청의 회전 깊이·판 가림을 위한 표현이며 분위기 장식이 아니다.
 - CSS Prettier 확인 통과. Focused scanner06/20은 다른 소유 issuer hit만 있고 이 단위 신규 confirmed slop 없음. 코드 검사와 실제 단면/속도 지각 QA는 분리한다.
+
+### 귀국 티켓 방향 일치
+
+- 사용자 concept에 맞춰 `src/containers/ticket/components/BoardingPass.tsx` 공통 주티켓·stub FROM을 배정 국가 airport/city로, TO를 ICN SEOUL/INCHEON으로 교정했다. 발권기·절취·확대·전체/조각 PNG가 공통 뷰를 사용한다.
+- aria 및 issuer 완료 안내도 출발 국가→인천으로 맞췄다. 확대에서는 출발/도착을 분리하고 국가 소개·동행·재발급 문구는 출발 국가 의미로 표시한다. Schema, allocation id, issuedAt, 서비스 저장 로직은 변경하지 않았다.
+- 기존 브랜드·종이·typography·모션은 그대로다. 소유 파일 Prettier/ESLint 및 전체 typecheck 통과. Focused slop scan 3그룹15hit는 기존 mono·기계/paper 표면 신호이며 이 단위 신규 confirmed slop 없음. 실제 렌더/저장 DOM 방향 QA는 독립 담당에게 넘겼다.
+
+### 공개 시작 시간 표시 전달
+
+- BoardingPass main/stub 시간은 optional `result.boardingTime`을 소비하고 없으면 기존 15:00 표시를 유지한다. 시간 capture·타입·route 전달은 별도 소유자 담당이며 저장 schema/issuedAt 변경 없음.
+- PreviewResult는 unknown route state의 HH:mm을 00:00~23:59 범위로 검증하고 유효 시간만 fixture 표시 객체에 합친다. Stub·확대·전체 저장이 같은 객체를 사용하며 새 clock을 만들지 않는다.
+- 표현 파일 focused Prettier/ESLint 통과. 최종 type 연결 이후 typecheck와 QA 인수를 별도로 확인한다.
+
+### 최종 헤더 국가 패널 비율
+
+- 사용자 crop에서 제목 cap보다 국가 패널이 크게 지배하는 문제를 확인했다. 최종 header만 판26px/font최대24px/cell17~19px로 조정했다.
+- Wrapper는 실제 글자 수와 각 판 gap을 합산한다. 헤더 vertical center와 초기 큰 hero 국가 패널/공유 layout 모션은 보존했다.
+- CSS Prettier/typecheck 통과. Focused slop scan에서 기존 airline mono·실기계 표면 의도를 유지하고 이 단위 신규 confirmed slop 없음. 667/844 actual header crop과 자동 행 채움 QA는 별도 담당에게 요청했다.
+
+### 헤더 실제 글자 중심 정렬
+
+- 두 번째 사용자 crop에서 제목의 actual ink center가 국가 glyph보다 위에 있는 것을 확인했다. 판 크기만 줄인 수정으로 충분하지 않았다.
+- H1에도 국가 glyph와 같은 `text-box: trim-both cap alphabetic`을 적용해 DIN의 비대칭 ascender/descender line-box 여백을 제거했다. Flex center가 cap box를 맞추도록 하며 y magic offset 없음.
+- 오른쪽 출발 안내 노드와 unused CSS를 삭제했다. Initial hero/layout/clock/손가락은 보존했다. Focused Prettier/ESLint/typecheck 통과, mono scanner 8hit는 기존 의도적 항공판 표현이다.
+- 실제 667/844 잉크 중심 및 screenshot crop을 QA에 요청했고 소스는 안정 상태로 유지한다.
+
+- 추가 실제 QA에서 center 차이는 0~0.01px로 해결했으나 cap 높이는 667에서 국가가 11% 크고 844에서 12% 작았다. 최종 expanded header만 공통 font-size 토큰과 `font-size-adjust: cap-height 0.7`로 두 폰트의 가시 높이를 정규화했다. Aside 지원 true 확인 후 적용했으며 unsupported는 기존 fallback을 유지한다. Compact hero/body 폰트는 변경하지 않았다.
+- 리팩터 후 실제 CSS 경로는 `src/containers/ticket/components/DepartureReveal/departure-reveal.css`다. 해당 파일 Prettier/typecheck 통과, 최종 cap height/center 재측정을 요청했다.
+- 최종 actual iframe QA: 844 제목/국가 cap 모두19.5px·center41px, 667 모두15.390625px·center40.9921875px. Body 가로 overflow 없음. Screenshot를 직접 시각 확인했고 임시 iframe 제거 완료 보고를 받았다. 증거: `/Users/junhyeok_work/.aside/u/0/sessions/2026-10-10_YL3Am9EesJsCSsfy/artifacts/header-cap-normalized-667.png` (CSS viewport iframe 검증, 실물 기기 아님).
+
+### 큰 보드 생성 → 전체 공동 축소
+
+- 최신 사용자 요청으로 국가판 단독 shared layout을 제거했다. Hero/final panel은 같은 기하의 3배/1배이며 전체 보드가 국가 중심을 보존한 채 생성된다. 공유 elapsed 전환 650ms의 앞 35% hold, 뒤 65% 전체 축소다.
+- Wrapper clip은 확대 장면의 문서 넘침을 막고 실제 반판 3D scene은 변경하지 않는다. 행 수 측정은 scale에 영향을 받지 않는 layout offset을 사용한다. Final header cap 정규화·본문 물리 모션·행 선택·시각 capture·손 안내를 보존한다.
+- Scoped kill-ai-slop scanner: 10파일/2그룹/8hit. Unicode story/test의 emoji 6건은 grapheme 회귀 fixture, mono 2건은 사용자가 지정한 항공판 표현이다. 신규 confirmed slop 없음. 장식/색/브랜드 추가 없이 모션 순서만 수정했다.
+- 소유 UI focused ESLint/TypeScript 통과. 공유 progress 타입/알고리즘 focused 테스트는 별도 소유자가 9 tests/120 assertions 통과 보고했다. 실제 country→hold→shrink 크기와 최종 화면 QA는 별도 담당에게 요청했으며 source 통과와 perceptual 인수를 구분한다.
+
+### 승인된 2단계 전환의 모션 디테일
+
+- 기존 전체 구조·크기 연속성 승인 이후 사용자 polish 요청만 반영했다. 900ms 전환 중 shell→제목→열 제목→본문을 짧게 등장시키고 국가판은 fade하지 않는다. 본문 등장 완료 뒤 약99ms hold, 그 뒤612ms 공동 축소다.
+- Quintic easing은 출발과 정착의 속도·가속도를 0으로 하고 overshoot/bounce를 추가하지 않는다. 자식의 2~3px 등장 이동과 opacity도 공유 progress 기반이며 wall-clock timer가 없다. 본문 물리 회전은 등장 완료 이후에 시작하므로 opacity가1로 돌아온 뒤 기존 3D 기구를 수행한다.
+- 공동 축소 구간만 RAF clock을 소비한다. 평소 플립/idle 샘플링 및 portrait pause/reduced cleanup은 공유 clock 소유자가 보존했다. Scoped scanner의 기존 grapheme fixture/mono 신호는 의도적이며 추가 glow·장식·설명 copy 없음.
+- Focused ESLint 및 공유 timeline9 tests/120 assertions 통과. Source 검사와 실제 영상 품질 판정은 분리하고 QA 안정 신호 후 실제 대표 프레임 검증을 요청한다.
+
+### 본문 IATA 코드 표시
+
+- 출발 국가 hero/header는 기존 실제 글자 길이를 유지하고 본문은 도착공항3칸·항공사2칸으로 분리했다. 사용자행은 optional 표시필드 또는 ICN/KE/121 기본값을 소비한다. 코드 사전/목데이터/타입은 별도 소유자가 관리한다.
+- BoardingPass main/stub 항공편은 같은 표시필드로 KE121을 보여 준다. 브랜드/종이/귀국방향/저장 schema는 변경하지 않는다. 기존 승인된 모션 polish와 header geometry는 그대로다.
+
+### 본문 가독성 후속 교정
+
+- 사용자 actual crop을 직접 확인했다. IATA화 후 기존 font가 높이 상한까지 커지고 slash형 mono0와 강한 이중 윤곽/힌지가 글자를 분단했다. 명도만 낮추는 수정으로 충분하지 않았다.
+- Body만 common Arial/Helvetica plain0와 모든 고정·회전 반부의 동일 scaleX0.82를 적용했다. 판·힌지·3D기하와 hero/header cap은 유지한다. 특정 macOS font asset 의존을 추가하지 않는다.
+- 독립판 border35%/1px seam28%와 낮은 edge light, label13/11px·line-height1.25로 여백/위계를 개선했다. 후속 사용자 요청으로 font=min(37px×.72,cellwidth×1.1), categorygap12–18px로 더 줄이고 벌렸다. 개별 plate gap는 유지한다.
+- Focused formatter/ESLint/TypeScript 통과. 최신 HOME/GDG 조합 source 안정 후 실제667/844 읽기·overflow·행 채움·모션 판정은 독립 QA에 전달한다.
+
+### Scoped kill-ai-slop review
+
+- 전광판 scanner10파일/2그룹/8hit: Unicode story/test emoji6건은 grapheme 회귀 fixture, mono2건은 사용자 지정 공항판이다. 신규 confirmed slop 없음. 물리 hinge/shadow는 낙하 면과 판 가림을 설명하며 분위기 장식이 아니다.
+- 이번 수정은 사용자가 보고한 구조/모션/가독성 범위로 제한했고 새 glow·설명 copy·brand redesign를 추가하지 않았다. Source 수치 통과와 지각적 품질 인수는 구분한다.
+
+### 최신 표시 최종값
+
+- 사용자 행 HOME4칸·GDG3칸, mock 실제공항3/항공사2코드는 빈칸 padding으로 유지한다. CSS fallback4/3/trackgap30이며 최종 26glyph+5categorygap이다.
+- BoardingPass main/stub는 airlineLabel 또는 GDG + flightNumber 또는121로 표시한다. 표시 브랜드와 실제 IATA 식별 airlineCode는 구분한다. 귀국 티켓 ICN 방향과 저장 schema는 그대로다.

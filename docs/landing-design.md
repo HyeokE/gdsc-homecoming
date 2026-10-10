@@ -26,7 +26,7 @@
 
 ## 대체된 초안
 
-`src/assets/landing/airport-night.png`와 `airport-night.webp`는 사용하지 않는 공항 사진 초안이다. 이어서 검토했던 `FlapCell` 기반 랜딩 제목도 현재 입장 화면에서 사용하지 않는다. 실제 추첨 화면의 플립 표현은 계속 사용한다.
+`src/containers/home/assets/airport-night.png`와 `airport-night.webp`는 사용하지 않는 공항 사진 초안이다. 이어서 검토했던 `FlapCell` 기반 랜딩 제목도 현재 입장 화면에서 사용하지 않는다. 실제 추첨 화면의 플립 표현은 계속 사용한다.
 
 ## 확인 범위
 

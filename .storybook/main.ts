@@ -1,4 +1,4 @@
-import type { StorybookConfig } from '@storybook/react-vite'
+import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.tsx'],
@@ -9,5 +9,5 @@ const config: StorybookConfig = {
     disableTelemetry: true,
     allowedHosts: ['mac-black.taile6a871.ts.net'],
   },
-}
-export default config
+};
+export default config;

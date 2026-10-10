@@ -1,6 +1,6 @@
 # GDG AIR 디자인 시스템
 
-작성일: 2026-10-10 · 구현: `src/index.css`, `src/components/PaperTicket.tsx`, `src/styles/paper-ticket.css`, `src/styles/terminal-ui.css` 및 화면별 스타일 · 범위: 공통 시각 기준과 Tailwind v4 토큰
+작성일: 2026-10-10 · 구현: `src/styles/globals.css`, `src/components/brand/PaperTicket.tsx`, `src/components/brand/styles/paper-ticket.css`, `src/containers/ticket/components/CheckInForm/terminal-ui.css` 및 화면별 스타일 · 범위: 공통 시각 기준과 Tailwind v4 토큰
 
 ## 확정과 제안
 
@@ -12,14 +12,14 @@
 
 ## 현재 공통 콘셉트
 
-| 화면          | 공통 기준의 적용                                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 입장          | `PaperTicket`의 따뜻한 흰 종이 위에 큰 `HOME / COMING`, 작은 고정폭 일정, 검정 발권 버튼을 배치한다.                                                    |
+| 화면 | 공통 기준의 적용 |
+| --- | --- |
+| 입장 | `PaperTicket`의 따뜻한 흰 종이 위에 큰 `HOME / COMING`, 작은 고정폭 일정, 검정 발권 버튼을 배치한다. |
 | 이메일·닉네임 | 같은 `PaperTicket`에서 `CHECK-IN` 또는 `PASSENGER`를 Anton으로 표시한다. 한국어 제목·설명은 시스템 sans, 입력값은 고정폭 글꼴과 밑줄 입력란을 사용한다. |
-| 추첨 전광판   | 기존 어두운 플립 패널·중앙 이음새·얕은 음영을 유지한다. 노란 사용자 결과 행과 해당 조작의 의미를 유지한다.                                              |
-| 발권기        | 기존 그래파이트 금속 외장·슬롯·작은 상태등과 종이 출력 동작을 유지한다.                                                                                 |
-| 탑승권·수령   | 실제 `BoardingPass`의 종이·고정폭 인쇄 정보·바코드·절취선과 뜯기 동작을 유지한다.                                                                       |
-| 모달          | 기존 확인 모달의 차콜 표면과 초점 처리를 유지한다. 수령 모달은 검은 배경에서 종이를 강조하는 기존 표현을 유지한다.                                      |
+| 추첨 전광판 | 기존 어두운 플립 패널·중앙 이음새·얕은 음영을 유지한다. 노란 사용자 결과 행과 해당 조작의 의미를 유지한다. |
+| 발권기 | 기존 그래파이트 금속 외장·슬롯·작은 상태등과 종이 출력 동작을 유지한다. |
+| 탑승권·수령 | 실제 `BoardingPass`의 종이·고정폭 인쇄 정보·바코드·절취선과 뜯기 동작을 유지한다. |
+| 모달 | 기존 확인 모달의 차콜 표면과 초점 처리를 유지한다. 수령 모달은 검은 배경에서 종이를 강조하는 기존 표현을 유지한다. |
 
 `PaperTicket`은 `BoardingPass`에서 공유하는 `AirlineBrand`(Google 4색 마크와 `GDGoC DJU`)와 `HOMECOMING 2026`을 상단에 표시한다. 점선 절취선과 양옆 원형 홈으로 종이 티켓의 형태를 표현하고 하단 문의 링크를 공통 제공한다. 별도의 랜딩 `GDG AIR` 로고를 추가하지 않는다.
 
@@ -51,57 +51,57 @@
 
 ### 원색
 
-| Palette                            | 값                                            | 용도                                     |
-| ---------------------------------- | --------------------------------------------- | ---------------------------------------- |
-| charcoal-950 / 900 / 800           | `#101214` / `#191D21` / `#252B31`             | 기존 차콜 / 표면 / 높은 표면             |
-| charcoal-600                       | `#727C86`                                     | 조작부 경계                              |
-| black / ivory                      | `#080A0C` / `#F4F0E6`                         | 플립패널 / 주요 문자                     |
-| paper / ink / ink-muted            | `#F7F3E9` / `#20252A` / `#5D6267`             | 티켓 종이 / 잉크 / 보조 잉크             |
-| stone / paper-line                 | `#B7BDC4` / `#858078`                         | 앱 보조 문자 / 티켓 경계                 |
-| google-blue / green / yellow / red | `#4285F4` / `#34A853` / `#FBBC05` / `#EA4335` | 브랜드 포인트                            |
-| blue-hover / blue-active           | `#639BFA` / `#3676DF`                         | 주요 행동 상호작용                       |
-| blue-soft / green-soft / red-soft  | `#9AC0FF` / `#81CF96` / `#FF9A91`             | 링크·포커스 / 완료 문자 / 오류·주의 문자 |
+| Palette | 값 | 용도 |
+| --- | --- | --- |
+| charcoal-950 / 900 / 800 | `#101214` / `#191D21` / `#252B31` | 기존 차콜 / 표면 / 높은 표면 |
+| charcoal-600 | `#727C86` | 조작부 경계 |
+| black / ivory | `#080A0C` / `#F4F0E6` | 플립패널 / 주요 문자 |
+| paper / ink / ink-muted | `#F7F3E9` / `#20252A` / `#5D6267` | 티켓 종이 / 잉크 / 보조 잉크 |
+| stone / paper-line | `#B7BDC4` / `#858078` | 앱 보조 문자 / 티켓 경계 |
+| google-blue / green / yellow / red | `#4285F4` / `#34A853` / `#FBBC05` / `#EA4335` | 브랜드 포인트 |
+| blue-hover / blue-active | `#639BFA` / `#3676DF` | 주요 행동 상호작용 |
+| blue-soft / green-soft / red-soft | `#9AC0FF` / `#81CF96` / `#FF9A91` | 링크·포커스 / 완료 문자 / 오류·주의 문자 |
 
 ### 의미색과 사용 계약
 
-| Tailwind 색 이름                         | 값 또는 연결                           | 의미                                             |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| canvas / surface / surface-raised        | `#000` / charcoal-900 / charcoal-800   | 외부 배경 / 어두운 표면 / 높은 표면              |
-| foreground / muted                       | ivory / stone                          | 제목·본문 / 도움말·라벨                          |
-| border                                   | charcoal-600                           | 입력·조작부의 식별 가능한 경계                   |
-| primary / primary-hover / primary-active | google-blue / blue-hover / blue-active | 주요 버튼 배경                                   |
-| on-primary                               | black                                  | 파란 버튼 글자; 아이보리 글자 대신 대비 확보     |
-| disabled / on-disabled                   | charcoal-800 / stone                   | 비활성 배경·글자; 전체 opacity로 흐리지 않음     |
-| link                                     | blue-soft                              | 어두운 화면의 텍스트 링크; 밑줄로 링크도 식별    |
-| success / info / error                   | green-soft / google-yellow / red-soft  | 완료 / 안내 / 오류·재발급 주의 **문자와 아이콘** |
-| focus                                    | blue-soft                              | 어두운 표면의 포커스 외곽선                      |
-| ticket / ticket-ink / ticket-muted       | paper / ink / ink-muted                | 티켓 표면과 문자                                 |
-| ticket-border / ticket-focus             | paper-line / `#2459A8`                 | 밝은 티켓 경계 / 밝은 표면 포커스                |
-| board / board-ink / board-seam           | black / ivory / charcoal-800           | 전광판 표면 / 결과 / 장식 분할선                 |
-| brand-blue / green / yellow / red        | Google 원색                            | 로고·띠·점 등 포인트; 작은 본문에 사용하지 않음  |
+| Tailwind 색 이름 | 값 또는 연결 | 의미 |
+| --- | --- | --- |
+| canvas / surface / surface-raised | `#000` / charcoal-900 / charcoal-800 | 외부 배경 / 어두운 표면 / 높은 표면 |
+| foreground / muted | ivory / stone | 제목·본문 / 도움말·라벨 |
+| border | charcoal-600 | 입력·조작부의 식별 가능한 경계 |
+| primary / primary-hover / primary-active | google-blue / blue-hover / blue-active | 주요 버튼 배경 |
+| on-primary | black | 파란 버튼 글자; 아이보리 글자 대신 대비 확보 |
+| disabled / on-disabled | charcoal-800 / stone | 비활성 배경·글자; 전체 opacity로 흐리지 않음 |
+| link | blue-soft | 어두운 화면의 텍스트 링크; 밑줄로 링크도 식별 |
+| success / info / error | green-soft / google-yellow / red-soft | 완료 / 안내 / 오류·재발급 주의 **문자와 아이콘** |
+| focus | blue-soft | 어두운 표면의 포커스 외곽선 |
+| ticket / ticket-ink / ticket-muted | paper / ink / ink-muted | 티켓 표면과 문자 |
+| ticket-border / ticket-focus | paper-line / `#2459A8` | 밝은 티켓 경계 / 밝은 표면 포커스 |
+| board / board-ink / board-seam | black / ivory / charcoal-800 | 전광판 표면 / 결과 / 장식 분할선 |
+| brand-blue / green / yellow / red | Google 원색 | 로고·띠·점 등 포인트; 작은 본문에 사용하지 않음 |
 
 위 표는 종이 영역 밖의 전역 의미색이다. 전역 `success/info/error`는 어두운 표면 위 문자색이다. 밝은 티켓 위에는 `ticket-ink`를 사용한다. 새 상태 배경색을 임의로 추론하거나 상태색 위에 흰 글자를 놓지 않는다. 플립 분할선은 장식이며 조작부 경계의 대비 기준과 다르다.
 
 ## 서체·치수
 
-Anton은 `src/assets/fonts/anton-latin.woff2`에서 자체 호스팅하며 `font-display: swap`, normal, weight 400을 사용한다. Google Fonts 공식 Latin WOFF2(12,004 bytes)이며 [출처 기록](licenses/anton.md)과 [SIL OFL 1.1 원문](licenses/anton-OFL.txt)을 보관한다. 한국어는 포함하지 않아 시스템 sans가 담당한다. 종이 큰 제목의 대체 순서는 `Anton → Impact → Arial Narrow → sans-serif`이며 합성 굵기를 추가하지 않는다.
+Anton은 `src/components/brand/assets/anton-latin.woff2`에서 자체 호스팅하며 `font-display: swap`, normal, weight 400을 사용한다. Google Fonts 공식 Latin WOFF2(12,004 bytes)이며 [출처 기록](licenses/anton.md)과 [SIL OFL 1.1 원문](licenses/anton-OFL.txt)을 보관한다. 한국어는 포함하지 않아 시스템 sans가 담당한다. 종이 큰 제목의 대체 순서는 `Anton → Impact → Arial Narrow → sans-serif`이며 합성 굵기를 추가하지 않는다.
 
-| 토큰 / 클래스                           | 값                                                                                     | 사용                                                                              |
-| --------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| font-sans                               | 시스템 UI → Segoe UI → Noto Sans KR → Apple SD Gothic Neo → Malgun Gothic → sans-serif | 한영 본문; 설치된 폰트만 사용                                                     |
-| font-mono                               | SFMono-Regular → Consolas → Liberation Mono → Menlo → monospace                        | 플립·티켓 영문·숫자. 한글은 시스템 대체 서체이며 고정폭을 보장하지 않음           |
-| text-caption                            | 14px / 행간 1.5                                                                        | 라벨·보조문자                                                                     |
-| text-body                               | 16px / 행간 1.65                                                                       | 본문·입력                                                                         |
-| text-title                              | 32px / 행간 1.2                                                                        | 화면 제목                                                                         |
-| text-display                            | 40px / 행간 1.1                                                                        | 첫 제목·큰 코드; 짧은 영문에 제한                                                 |
-| tracking-label                          | 0.12em                                                                                 | 짧은 영문 라벨; 한글 본문에는 적용하지 않음                                       |
-| spacing 기준                            | 4px                                                                                    | `gap-2` 8px, `gap-3` 12px, `gap-4` 16px, `gap-6` 24px, `gap-8` 32px, `py-12` 48px |
-| spacing-page / px-page                  | 24px                                                                                   | 기본 좌우 여백                                                                    |
-| spacing-control / min-h-control         | 48px                                                                                   | 기본 조작부 최소 높이; 공통 주요 버튼·종이 입력은 52px                            |
-| spacing-touch / min-h-touch·min-w-touch | 44px                                                                                   | 아이콘 버튼 등 최소 터치 영역                                                     |
-| container-mobile / max-w-mobile         | 500px                                                                                  | 화면·모달 최대 너비; `w-full mx-auto`와 함께 사용                                 |
-| rounded-control / panel / ticket        | 4px / 4px / 4px                                                                        | 조작부 / 패널 / 종이 모서리                                                       |
-| shadow-panel / ticket                   | 검정 20%, 8px·24px / 검정 28%, 12px·28px                                               | 표면 / 출력된 종이의 깊이                                                         |
+| 토큰 / 클래스 | 값 | 사용 |
+| --- | --- | --- |
+| font-sans | 시스템 UI → Segoe UI → Noto Sans KR → Apple SD Gothic Neo → Malgun Gothic → sans-serif | 한영 본문; 설치된 폰트만 사용 |
+| font-mono | SFMono-Regular → Consolas → Liberation Mono → Menlo → monospace | 플립·티켓 영문·숫자. 한글은 시스템 대체 서체이며 고정폭을 보장하지 않음 |
+| text-caption | 14px / 행간 1.5 | 라벨·보조문자 |
+| text-body | 16px / 행간 1.65 | 본문·입력 |
+| text-title | 32px / 행간 1.2 | 화면 제목 |
+| text-display | 40px / 행간 1.1 | 첫 제목·큰 코드; 짧은 영문에 제한 |
+| tracking-label | 0.12em | 짧은 영문 라벨; 한글 본문에는 적용하지 않음 |
+| spacing 기준 | 4px | `gap-2` 8px, `gap-3` 12px, `gap-4` 16px, `gap-6` 24px, `gap-8` 32px, `py-12` 48px |
+| spacing-page / px-page | 24px | 기본 좌우 여백 |
+| spacing-control / min-h-control | 48px | 기본 조작부 최소 높이; 공통 주요 버튼·종이 입력은 52px |
+| spacing-touch / min-h-touch·min-w-touch | 44px | 아이콘 버튼 등 최소 터치 영역 |
+| container-mobile / max-w-mobile | 500px | 화면·모달 최대 너비; `w-full mx-auto`와 함께 사용 |
+| rounded-control / panel / ticket | 4px / 4px / 4px | 조작부 / 패널 / 종이 모서리 |
+| shadow-panel / ticket | 검정 20%, 8px·24px / 검정 28%, 12px·28px | 표면 / 출력된 종이의 깊이 |
 
 글자 크기·간격은 rem 기반으로 브라우저 기본 글자 크기를 따른다(500px 컨테이너는 사용자 지시의 고정 상한). 긴 이름은 생략하지 않으며 줄바꿈·축소의 상세 규칙은 티켓 구현 때 정한다. 축소 티켓 밖에도 목적지·승객명 텍스트와 크게 보기를 제공한다. 가로 화면·키보드·텍스트 확대에서는 스크롤을 허용하고 높이를 고정하지 않는다. 화면·하단 조작부를 구현할 때 safe-area inset을 별도로 고려한다.
 
