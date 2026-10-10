@@ -69,7 +69,7 @@ export function createRollingPlan(result: DepartureResult): RollingPlan {
     airport: makeRow(result.airportCode, detailStart + 100),
     gate: makeRow(result.gate, detailStart + 200),
   };
-  const readyAt = Math.max(6000, rowEnd(country), rowEnd(rows.gate)) + ROLLING_TIMING.readyHoldMs;
+  const readyAt = Math.max(detailStart, rowEnd(rows.gate)) + ROLLING_TIMING.readyHoldMs;
   return {
     rows,
     countryEnd,

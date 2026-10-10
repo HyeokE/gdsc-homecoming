@@ -4,7 +4,7 @@
 
 ## 폴더 구조
 
-SkinSeoulFront의 `app → containers/<domain>` 구조를 따릅니다. `home`은 입장 화면, `ticket`은 참가자 확인·발급·전광판·결과·재발급을 소유합니다. 전용 스타일·assets·테스트·스토리도 각 도메인 안에 두고, 외부에서는 공개 `index.ts`만 사용합니다. 공통 UI는 `components/common`, 공유 브랜드는 `components/brand`에 둡니다. `.scope.default.ts`와 export-scope lint로 컴포넌트·서비스 내부 구현도 사용처에 격리합니다.
+`app → containers/<domain>` 구조를 사용합니다. `home`은 입장 화면, `ticket`은 참가자 확인·발급·전광판·결과·재발급을 소유합니다. 전용 스타일·assets·테스트·스토리도 각 도메인 안에 두고, 외부에서는 공개 `index.ts`만 사용합니다. 공통 UI는 `components/common`, 공유 브랜드는 `components/brand`에 둡니다. `.scope.default.ts`와 export-scope lint로 컴포넌트·서비스 내부 구현도 사용처에 격리합니다.
 
 [의존성 규칙과 기능 삭제 방법](docs/architecture.md)을 확인하세요.
 

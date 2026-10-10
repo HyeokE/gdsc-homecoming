@@ -83,11 +83,15 @@ test('reduced motion reveals all targets immediately without changing confirmati
   expect(state.airportSettled).toBe(true);
 });
 
-test('sample finishes in 6-8 seconds and detail wheels start after layout completes', () => {
+test('guide becomes ready after visible wheels settle without a six-second minimum', () => {
   const plan = createRollingPlan(departurePreview);
   const detailsAt = plan.timeline.find((stage) => stage.phase === 'details')!.at;
-  expect(plan.readyAt).toBeGreaterThanOrEqual(6000);
-  expect(plan.readyAt).toBeLessThanOrEqual(8000);
+  expect(plan.readyAt).toBeLessThan(6000);
+  const settledAt = plan.readyAt - ROLLING_TIMING.readyHoldMs;
+  const settled = rollingStateAt(plan, settledAt, 1);
+  expect(settled.boardTransitionProgress).toBe(1);
+  expect(settled.gate.every((cell) => !cell.isFlipping)).toBe(true);
+  expect(rollingStateAt(plan, settledAt - 1, 1).gate.some((cell) => cell.isFlipping)).toBe(true);
   expect(plan.rows.passenger[0].startAt).toBe(detailsAt + ROLLING_TIMING.layoutMs);
   expect(rollingStateAt(plan, plan.countryEnd - 1, 1).countrySettled).toBe(false);
   expect(rollingStateAt(plan, plan.countryEnd, 1).countrySettled).toBe(true);

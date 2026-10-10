@@ -1,6 +1,6 @@
 # 도메인 구조와 삭제 경계
 
-SkinSeoulFront `apps/webapp/src`의 `app → containers/<domain>` 구성, 명시적 공개 `index.ts`, `components/common` 분류를 적용한다. 실행 환경은 기존 React/Vite와 React Router를 유지한다. `app`은 여기서 파일 기반 Next.js 라우터가 아니라 앱 조립 계층이다.
+`app → containers/<domain>` 구성, 명시적 공개 `index.ts`, `components/common` 분류를 적용한다. 실행 환경은 기존 React/Vite와 React Router를 유지한다. `app`은 여기서 파일 기반 Next.js 라우터가 아니라 앱 조립 계층이다.
 
 ```text
 src/
@@ -65,7 +65,7 @@ tests/                        # 운영 도구와 실제 ESLint scope 회귀 테�
 - `types`는 컴포넌트에서 타입을 가져오지 않는다. 데이터 계약을 바꾸지 않고 화면 구현을 교체할 수 있도록 모델을 먼저 정의하고 화면이 가져다 쓴다.
 - 폴더마다 barrel을 만들지 않는다. 소유 경계에서 필요한 이름만 명시적으로 export한다.
 
-`eslint.config.js`에서 SkinSeoulFront와 동일한 `eslint-plugin-export-scope`의 `export-scope/no-imports-outside-export-scope`를 error로 적용한다. `.scope.default.ts`와 `.scope.ts`는 전용 processor로 처리하는 lint 설정 파일이며 런타임에서 import하지 않는다. `tsconfig.eslint.json`은 alias와 Bun 테스트까지 해석하므로 테스트에서 private 코드를 가져오기 위해 예외를 열지 않는다.
+`eslint.config.js`에서 `eslint-plugin-export-scope`의 `export-scope/no-imports-outside-export-scope`를 error로 적용한다. `.scope.default.ts`와 `.scope.ts`는 전용 processor로 처리하는 lint 설정 파일이며 런타임에서 import하지 않는다. `tsconfig.eslint.json`은 alias와 Bun 테스트까지 해석하므로 테스트에서 private 코드를 가져오기 위해 예외를 열지 않는다.
 
 ```ts
 // components/DepartureReveal/.scope.default.ts
