@@ -21,17 +21,22 @@ import {
 } from '../utils/departureBoardRows';
 
 describe('viewport flight rows', () => {
-  test('fills complete rows at small and large landscape heights without a clipped last row', () => {
+  test('fills complete rows up to eight total without a clipped last row', () => {
     for (const viewportHeight of [375, 390, 600]) {
       const available = viewportHeight - 140 - 20;
       const count = fittingMockRows(available, 44, 5, 1);
       const filledHeight = (count + 1) * 44 + count * 5;
       expect(count).toBeGreaterThan(0);
       expect(filledHeight).toBeLessThanOrEqual(available);
-      expect(filledHeight + 49).toBeGreaterThan(available);
+      expect(count + 1).toBeLessThanOrEqual(8);
+      if (count + 1 < 8) {
+        expect(filledHeight + 49).toBeGreaterThan(available);
+      }
     }
     expect(fittingMockRows(44, 44, 5, 1)).toBe(0);
     expect(fittingMockRows(10, 44, 5, 2)).toBe(0);
+    expect(fittingMockRows(2000, 44, 5, 1)).toBe(7);
+    expect(fittingMockRows(2000, 44, 5, 2)).toBe(6);
   });
 
   test('generates deterministic schedules beyond the first three fixtures', () => {

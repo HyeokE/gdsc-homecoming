@@ -197,12 +197,14 @@ export function mockRowCellsAt(
   return row;
 }
 
-/** Count only complete physical rows, including all gaps between them. */
+const MAX_BOARD_ROWS = 8;
+
+/** Fit complete rows within the viewport, capped including the passenger's rows. */
 export function fittingMockRows(availableHeight: number, rowHeight: number, rowGap: number, actualRows: number) {
   if (rowHeight <= 0 || !Number.isFinite(availableHeight)) {
     return 0;
   }
-  const total = Math.floor((Math.max(0, availableHeight) + rowGap) / (rowHeight + rowGap));
+  const total = Math.min(MAX_BOARD_ROWS, Math.floor((Math.max(0, availableHeight) + rowGap) / (rowHeight + rowGap)));
   return Math.max(0, total - actualRows);
 }
 

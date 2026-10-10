@@ -1,5 +1,5 @@
 import type { DeparturePhase, DepartureResult } from '../../types/departure';
-import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import type { RollingCell, RollingState } from '../../types/rolling';
 import { makePanelRows } from './utils/panelSlots';
 import {
@@ -15,16 +15,7 @@ import { LayoutGroup, MotionConfig, motion } from 'motion/react';
 import './departure-reveal.css';
 import pointingHand from './assets/pointing-hand-3d-v2.webp';
 
-function HandGuide({ reducedMotion }: { reducedMotion: boolean }) {
-  const [visible, setVisible] = useState(true);
-  const [lifetime] = useState(() => (reducedMotion ? 900 : 1300));
-  useEffect(() => {
-    const timer = window.setTimeout(() => setVisible(false), lifetime);
-    return () => window.clearTimeout(timer);
-  }, [lifetime]);
-  if (!visible) {
-    return null;
-  }
+function HandGuide() {
   return (
     <span className="departure-row-guide" aria-hidden="true">
       <img src={pointingHand} alt="" decoding="async" />
@@ -485,7 +476,7 @@ export function DepartureReveal({
                     }
                   }}
                 >
-                  {ready && <HandGuide reducedMotion={reducedMotion} />}
+                  {ready && <HandGuide />}
                 </button>
               )}
             </div>
