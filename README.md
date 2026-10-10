@@ -16,14 +16,6 @@ bun run dev
 의존성은 Bun으로 관리하며 `bun.lock`을 커밋합니다. 재현 가능한 설치에는
 `bun install --frozen-lockfile`을 사용하세요. 개발 서버 주소는 실행 후 터미널에 표시됩니다.
 
-## Tailscale에서 접속하기
-
-이 Mac과 같은 tailnet에 연결된 기기에서 아래 주소로 접속할 수 있습니다.
-
-- 앱: <https://mac-black.taile6a871.ts.net:8443/>
-- 출발 전광판: <https://mac-black.taile6a871.ts.net:8443/preview/departure>
-- Storybook: <https://mac-black.taile6a871.ts.net:10000/>
-
 개발 서버는 각각 별도 터미널에서 실행합니다.
 
 ```sh
