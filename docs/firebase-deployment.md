@@ -10,7 +10,7 @@ Cloud Functions, 참가자 명단 가져오기, Google Sheets 자동 동기화�
 
 배포 전 포맷·ESLint·타입 검사, 격리된 Firestore 에뮬레이터의 170 tests / 855 assertions, 프로덕션 빌드를 통과했다. 기존 개발용 에뮬레이터를 유지하기 위해 별도 포트 8181에서 테스트하고, 검증한 빌드를 `bun run deploy:firebase --prebuilt`로 배포했다. Aside Browser에서 랜딩 → 이메일 입력 → 미등록 테스트 이메일의 “신청 내역을 찾을 수 없어요” 응답까지 확인했다. 브라우저 기본 뷰포트에서 확인했으며 모바일 뷰포트 강제 설정은 Aside API 미지원으로 수행하지 못했다. 실제 참가자 발권·재발급은 실행하지 않았다. 배포 후 공개 이벤트 문서는 schemaVersion 2, 발급 합계 0으로 조회됐다.
 
-GitHub Actions 자동 배포는 별도다. 워크플로는 작업 폴더에 있으며 저장소 변수 8개는 개인 계정 `HyeokE`로 등록하고 readback을 확인했다. 첫 Actions 실행 검증은 진행 중이다. Google Cloud OIDC provider(ACTIVE)·배포 서비스 계정·4개 프로젝트 역할·Workload Identity User 바인딩은 생성 후 readback을 확인했다. 경로별 GitHub CLI 래퍼로 기존 GCM 자격 증명을 사용한 개인·업무 API 계정 확인도 완료했다.
+GitHub Actions 자동 배포를 활성화했다. 기본 브랜치는 `main`이며, 저장소 변수 8개는 개인 계정 `HyeokE`로 등록하고 readback을 확인했다. 2026-10-10 첫 push 실행 [38039731507](https://github.com/HyeokE/gdsc-homecoming/actions/runs/38039731507)은 검사·테스트·빌드·OIDC 인증·Firebase 배포 모두 성공했다. 앞으로 `main` push마다 같은 파이프라인이 실행된다. Google Cloud OIDC provider(ACTIVE)·배포 서비스 계정·4개 프로젝트 역할·Workload Identity User 바인딩은 생성 후 readback을 확인했다. 경로별 GitHub CLI 래퍼로 기존 GCM 자격 증명을 사용한 개인·업무 API 계정 확인도 완료했다.
 
 ## 로컬 배포 CLI
 
@@ -131,3 +131,9 @@ Provider의 속성 조건은 저장소 ID `1412116288`, 소유자 ID `61281239`,
 - `roles/serviceusage.serviceUsageConsumer`
 
 OIDC 리소스와 변수는 설정 후 실제 GitHub 실행으로 검증해야 한다. 인증 오류는 provider 경로·속성 조건·서비스 계정의 Workload Identity User 바인딩을, 권한 오류는 배포 대상과 위 역할을 확인한다.
+
+## 공개 저장소와 공유 이미지
+
+게시 전 소스와 기존 Git 이력을 확인했으며 실제 비밀키·OAuth 토큰·참가자 명단은 포함하지 않았다. 운영 응답 시트 링크도 공개 문서에서 제거했다. `.env.local`, `.firebase/`, 로그, 임시 OIDC 인증 파일은 Git에서 제외한다. 저장소의 secret scanning과 push protection이 활성화된 것을 확인했다. Firebase Web SDK 설정과 프로젝트/OIDC 식별자는 공개 설정이며 서비스 계정 개인 키를 저장하지 않는다.
+
+OG/Twitter 메타와 SVG·PNG favicon, Apple touch icon을 적용했다. OG 최종 이미지는 `public/og-image-v2.png`(1731×909, 약 2.4 MB)로, 이미지 캐시를 구분하기 위해 새 URL을 사용한다. 제작 방식과 프롬프트는 [공유 이미지 제작 기록](social-preview.md)에 남겼다.
