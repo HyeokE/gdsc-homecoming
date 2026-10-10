@@ -16,6 +16,10 @@ import {
 } from '../lib/firebase'
 import type { ServiceErrorKind, Ticket, TicketService } from '../types/ticket'
 import { TicketServiceError } from './ticketServiceError'
+import {
+  createSheetsEligibilityLookup,
+  type SheetsEligibilityOptions,
+} from './sheetsEligibility'
 
 export interface TicketApiRequest {
   action: 'check' | 'restore' | 'issue' | 'reissue' | 'count'
@@ -401,6 +405,30 @@ export function createFirestoreTicketCall(db: Firestore): TicketApiCall {
 
 const emulatorConnections = new WeakSet<Firestore>()
 
+/** Check the current Sheet only when entering with an email, not during recovery. */
+export function withSheetsEligibility(
+  call: TicketApiCall,
+  environment: FirebaseEnvironment,
+  options?: SheetsEligibilityOptions,
+): TicketApiCall {
+  const endpoint = environment.VITE_ROSTER_LOOKUP_URL?.trim()
+  if (
+    !endpoint ||
+    environment.VITE_USE_FIREBASE_EMULATORS === 'true' ||
+    environment.VITE_TICKET_SERVICE === 'demo'
+  )
+    return call
+  return async (request) => {
+    if (request.action === 'check') {
+      const key = await firestoreEmailKey(request.email)
+      const checkEligibility = createSheetsEligibilityLookup(endpoint, options)
+      if (!(await checkEligibility(key))) return fail('not-found')
+    }
+    // The original transport still enforces the Firestore roster and allocation.
+    return call(request)
+  }
+}
+
 export function createFirebaseTicketCall(
   environment: FirebaseEnvironment,
 ): TicketApiCall {
@@ -415,5 +443,5 @@ export function createFirebaseTicketCall(
     connectFirestoreEmulator(db, host, 8080)
     emulatorConnections.add(db)
   }
-  return createFirestoreTicketCall(db)
+  return withSheetsEligibility(createFirestoreTicketCall(db), environment)
 }

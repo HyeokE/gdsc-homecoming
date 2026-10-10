@@ -27,6 +27,19 @@ export function ciVariables(environment) {
     }
     variables.VITE_FIREBASE_MEASUREMENT_ID = measurementId
   }
+  const rosterLookupUrl = production.VITE_ROSTER_LOOKUP_URL
+  if (rosterLookupUrl !== undefined && rosterLookupUrl !== '') {
+    if (
+      typeof rosterLookupUrl !== 'string' ||
+      rosterLookupUrl !== rosterLookupUrl.trim() ||
+      !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/u.test(
+        rosterLookupUrl,
+      )
+    ) {
+      throw new Error('Invalid VITE_ROSTER_LOOKUP_URL.')
+    }
+    variables.VITE_ROSTER_LOOKUP_URL = rosterLookupUrl
+  }
   return {
     ...variables,
     GCP_WORKLOAD_IDENTITY_PROVIDER:

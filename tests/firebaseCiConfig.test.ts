@@ -26,6 +26,71 @@ const readback = (values = ciVariables(environment)) =>
   )
 
 describe('Firebase GitHub Actions setup CLI', () => {
+  test('includes only an exact public Apps Script lookup endpoint when configured', () => {
+    const url = 'https://script.google.com/macros/s/test-deployment_123/exec'
+    expect(ciVariables(environment)).not.toHaveProperty(
+      'VITE_ROSTER_LOOKUP_URL',
+    )
+    expect(
+      ciVariables({ ...environment, VITE_ROSTER_LOOKUP_URL: '' }),
+    ).not.toHaveProperty('VITE_ROSTER_LOOKUP_URL')
+    expect(
+      ciVariables({ ...environment, VITE_ROSTER_LOOKUP_URL: url }),
+    ).toHaveProperty('VITE_ROSTER_LOOKUP_URL', url)
+  })
+
+  test.each([
+    ' ',
+    'not-a-url',
+    'http://script.google.com/macros/s/id/exec',
+    'https://script.google.com.evil.example/macros/s/id/exec',
+    'https://user:password@script.google.com/macros/s/id/exec',
+    'https://script.google.com:443/macros/s/id/exec',
+    'https://script.google.com/macros/s/id/dev',
+    'https://script.google.com/macros/s/id/exec?key=secret',
+    'https://script.google.com/macros/s/id/exec#fragment',
+    'https://script.google.com/macros/s/id/exec/',
+    'https://script.google.com/macros/s/id/exec\n',
+    'https://docs.google.com/spreadsheets/d/private-sheet/edit',
+  ])('rejects malformed lookup URLs before any CLI calls %#', (url) => {
+    let calls = 0
+    expect(() =>
+      configureFirebaseCi({
+        environment: { ...environment, VITE_ROSTER_LOOKUP_URL: url },
+        args: ['--apply'],
+        log: silent,
+        run: () => {
+          calls++
+          return ''
+        },
+      }),
+    ).toThrow('Invalid VITE_ROSTER_LOOKUP_URL')
+    expect(calls).toBe(0)
+  })
+
+  test('applies and verifies the optional lookup URL without logging its value', () => {
+    const url = 'https://script.google.com/macros/s/test-deployment_123/exec'
+    const configured = { ...environment, VITE_ROSTER_LOOKUP_URL: url }
+    const messages: string[] = []
+    const writes: Record<string, string | undefined> = {}
+    const result = configureFirebaseCi({
+      environment: configured,
+      args: ['--apply'],
+      log: (message: string) => messages.push(message),
+      run: (_command: string, args: string[], options: { input?: string }) => {
+        if (args.includes('user')) return 'HyeokE\n'
+        if (args[0] === 'api') return metadata
+        if (args[1] === 'set') writes[args[2]] = options.input
+        if (args[1] === 'list') return readback(ciVariables(configured))
+        return ''
+      },
+    })
+    expect(result).toMatchObject({ applied: true })
+    expect(writes.VITE_ROSTER_LOOKUP_URL).toBe(url)
+    expect(messages.join('\n')).toContain('VITE_ROSTER_LOOKUP_URL')
+    expect(messages.join('\n')).not.toContain(url)
+  })
+
   test('plans only public SDK and fixed OIDC repository variables', () => {
     const values = ciVariables(environment)
     expect(Object.keys(values)).toHaveLength(7)

@@ -2,7 +2,7 @@
 
 배포 대상은 Firebase 프로젝트 `gdsc-homecomming`의 Hosting 사이트와 Firestore 규칙·인덱스다. Hosting 주소는 [gdsc-homecomming.web.app](https://gdsc-homecomming.web.app)이며, `dist/`를 배포하고 앱 경로는 SPA의 `index.html`로 연결한다.
 
-Cloud Functions, 참가자 명단 가져오기, Google Sheets 자동 동기화는 배포에 포함하지 않는다. 신규 신청자 반영은 [명단 가져오기](firebase-setup.md#명단-가져오기)를 별도로 실행한다.
+Cloud Functions와 Apps Script는 이 Firebase 배포에 포함하지 않는다. 실시간 신청자 확인용 Apps Script 웹 앱은 별도로 배포하고 공개 `/exec` URL을 GitHub 저장소 변수 `VITE_ROSTER_LOOKUP_URL`에 설정해야 한다. 프런트 재빌드·배포 후 이메일 확인마다 시트를 읽는 [실시간 신청자 확인](firebase-setup.md#실시간-신청자-확인)을 사용한다. URL을 설정하지 않은 환경에서는 [수동 명단 가져오기](firebase-setup.md#명단-가져오기)를 대체 경로로 사용할 수 있다. 정기 동기화 트리거는 설치하지 않았다.
 
 ## 현재 상태
 
@@ -81,16 +81,17 @@ gh run watch RUN_ID --repo HyeokE/gdsc-homecoming --exit-status
 
 GitHub 저장소 `Settings → Secrets and variables → Actions → Variables`에 설정한다. 아래 Web SDK 값은 브라우저 번들에 들어가는 공개 설정이다. 비공개 인증 정보는 `VITE_` 변수에 넣지 않는다.
 
-| 변수                                | 값의 출처                                            |
-| ----------------------------------- | ---------------------------------------------------- |
-| `VITE_FIREBASE_API_KEY`             | Firebase Web 앱 SDK 설정의 `apiKey`                  |
-| `VITE_FIREBASE_AUTH_DOMAIN`         | `gdsc-homecomming.firebaseapp.com`                   |
-| `VITE_FIREBASE_STORAGE_BUCKET`      | SDK 설정의 `storageBucket`                           |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | SDK 설정의 `messagingSenderId`                       |
-| `VITE_FIREBASE_APP_ID`              | SDK 설정의 `appId`                                   |
-| `VITE_FIREBASE_MEASUREMENT_ID`      | 선택 사항. 설정만으로 Analytics를 활성화하지 않는다. |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER`    | 아래 provider 전체 리소스 경로                       |
-| `GCP_SERVICE_ACCOUNT`               | 아래 배포 서비스 계정 이메일                         |
+| 변수                                | 값의 출처                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `VITE_FIREBASE_API_KEY`             | Firebase Web 앱 SDK 설정의 `apiKey`                                                                                |
+| `VITE_FIREBASE_AUTH_DOMAIN`         | `gdsc-homecomming.firebaseapp.com`                                                                                 |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | SDK 설정의 `storageBucket`                                                                                         |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | SDK 설정의 `messagingSenderId`                                                                                     |
+| `VITE_FIREBASE_APP_ID`              | SDK 설정의 `appId`                                                                                                 |
+| `VITE_FIREBASE_MEASUREMENT_ID`      | 선택 사항. 설정만으로 Analytics를 활성화하지 않는다.                                                               |
+| `VITE_ROSTER_LOOKUP_URL`            | 선택 사항. 별도 배포한 공개 Apps Script 웹 앱의 정확한 `https://script.google.com/macros/s/<deployment>/exec` URL. |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER`    | 아래 provider 전체 리소스 경로                                                                                     |
+| `GCP_SERVICE_ACCOUNT`               | 아래 배포 서비스 계정 이메일                                                                                       |
 
 `VITE_FIREBASE_PROJECT_ID=gdsc-homecomming`, `VITE_TICKET_SERVICE=firebase`, `VITE_USE_FIREBASE_EMULATORS=false`는 워크플로에 고정되어 있다. 다음 CLI로 현재 로컬 공개 SDK 설정과 위 OIDC 식별자를 한 번에 등록할 수 있다. 기본 실행은 이름만 출력하는 dry-run이며 `--apply`만 저장소 변수를 변경한다. 등록 후 각 값을 재조회해 일치 여부를 확인한다.
 
@@ -101,6 +102,8 @@ gh auth login --hostname github.com --git-protocol https --web --scopes workflow
 bun run setup:firebase-ci
 bun run setup:firebase-ci --apply
 ```
+
+설정 CLI는 `VITE_ROSTER_LOOKUP_URL`이 없거나 빈 값이면 생략한다. 값이 있으면 정확한 공개 Apps Script `/exec` 주소만 허용하며, 잘못된 호스트·경로·쿼리·인증 정보·공백은 GitHub 호출 전에 거부한다. 기존 저장소 변수 삭제는 수행하지 않는다. 시트 ID·비공개 시트 주소·자격 증명은 공개 설정에 넣지 않는다. 초기 서버 동기화는 4건 읽기·신규 2건·기존 2건 readback을 확인했다. 독립 Apps Script 웹 앱과 이를 사용하는 Hosting 빌드를 배포했으며, 2026-10-10 운영 UI에서 `test@gmail.com`의 실제 조회 요청 및 닉네임 단계 진입을 확인했다. 발권·재발급은 검증 범위에 포함하지 않았다.
 
 이 설정 CLI는 실제 인증 계정이 `HyeokE`인지 먼저 확인하고, 다른 계정이면 변수를 쓰기 전에 중단한다. 이후 대상 저장소 관리자 권한을 확인하며 코드 push, Google Cloud 설정 변경, 배포 실행은 하지 않는다. 개별 변수는 `gh variable set 변수명 --repo HyeokE/gdsc-homecoming`으로 관리할 수도 있다.
 
