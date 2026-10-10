@@ -68,6 +68,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Desktop: Story = {};
 
+export const LowercaseName: Story = {
+  args: { result: { ...departurePreview, passengerName: 'jason Jeong 정준혁' } },
+  render: (args) => <InteractivePreview {...args} />,
+};
+
 export const CompactPhone: Story = {
   parameters: { canvasMaxWidth: 500 },
   globals: { viewport: { value: 'mobile390', isRotated: false } },

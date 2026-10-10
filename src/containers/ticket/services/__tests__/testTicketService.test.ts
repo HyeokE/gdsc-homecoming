@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { createDemoTicketService, DEMO_STORAGE_KEY } from '../demoTicketService';
 import { createTestTicketService, isTestAccount, TEST_STORAGE_KEY } from '../testTicketService';
 import { createTicketRuntime, getServiceForEmail } from '../ticketService';
+import { TicketServiceError } from '../ticketServiceError';
 
 function fixture() {
   const data = new Map<string, string>();
@@ -90,5 +91,43 @@ describe('isolated test account', () => {
     const demoService = createDemoTicketService({ storage });
     expect(await demoService.checkEmail('demo@gdg.example')).toEqual({ existing: false });
     expect(data.get(TEST_STORAGE_KEY)).toBe('invalid');
+  });
+
+  test('reset removes test history and counts while preserving other browser data', async () => {
+    const { service, storage, data } = fixture();
+    const demoService = createDemoTicketService({ storage });
+    const demoTicket = await demoService.issue('demo@gdg.example', 'Participant', 'demo-issue');
+    const demoBefore = data.get(DEMO_STORAGE_KEY);
+    data.set('unrelated', 'preserved');
+    const original = await service.issue('test@gmail.com', 'Original', 'issue');
+    const reissued = await service.reissue('test@gmail.com', 'reissue');
+
+    service.reset();
+
+    expect(await service.checkEmail('test@gmail.com')).toEqual({ existing: false });
+    expect(await createTestTicketService(storage).restore('test@gmail.com')).toBeNull();
+    expect(await service.count(reissued.destinationId)).toBe(0);
+    expect(data.get(DEMO_STORAGE_KEY)).toBe(demoBefore);
+    expect(await demoService.restore('demo@gdg.example')).toEqual(demoTicket);
+    expect(data.get('unrelated')).toBe('preserved');
+    const fresh = await service.issue('test@gmail.com', 'Fresh', 'new-issue');
+    expect(fresh.id).not.toBe(original.id);
+    expect(fresh.passengerName).toBe('Fresh');
+    expect(fresh.revision).toBe(1);
+    expect(fresh.reissueUsed).toBe(false);
+  });
+
+  test('reset reports write failures and preserves the existing test ticket', async () => {
+    const { storage, service } = fixture();
+    const original = await service.issue('test@gmail.com', 'Original', 'issue');
+    const unavailableService = createTestTicketService({
+      getItem: storage.getItem,
+      setItem() {
+        throw new Error('storage unavailable');
+      },
+    });
+    expect(() => unavailableService.reset()).toThrow(TicketServiceError);
+    expect(() => unavailableService.reset()).toThrow('storage');
+    expect(await service.restore('test@gmail.com')).toEqual(original);
   });
 });

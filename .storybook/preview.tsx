@@ -60,21 +60,24 @@ const preview: Preview = {
     },
   },
   decorators: [
-    (Story, context) => (
-      <MotionConfig reducedMotion={context.globals.reducedMotion ? 'always' : 'user'}>
-        <main
-          className="mx-auto flex min-h-dvh w-full flex-col justify-center px-5 py-8"
-          style={{ maxWidth: context.parameters.canvasMaxWidth ?? 500 }}
-        >
-          <Story
-            args={{
-              ...context.args,
-              reducedMotion: Boolean(context.globals.reducedMotion) || context.args.reducedMotion,
-            }}
-          />
-        </main>
-      </MotionConfig>
-    ),
+    (Story, context) => {
+      const Canvas = context.parameters.canvasIncludesMain ? 'div' : 'main';
+      return (
+        <MotionConfig reducedMotion={context.globals.reducedMotion ? 'always' : 'user'}>
+          <Canvas
+            className="mx-auto flex min-h-dvh w-full flex-col justify-center px-5 py-8"
+            style={{ maxWidth: context.parameters.canvasMaxWidth ?? 500 }}
+          >
+            <Story
+              args={{
+                ...context.args,
+                reducedMotion: Boolean(context.globals.reducedMotion) || context.args.reducedMotion,
+              }}
+            />
+          </Canvas>
+        </MotionConfig>
+      );
+    },
   ],
 };
 export default preview;

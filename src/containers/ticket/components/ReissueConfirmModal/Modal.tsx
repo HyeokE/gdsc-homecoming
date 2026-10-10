@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
-import { secondaryButtonClass } from '@/components/common/buttonClasses';
 import './modal.css';
 export interface ModalProps {
   open: boolean;
@@ -36,7 +35,7 @@ export function Modal({ open, title, children, onClose, busy = false }: ModalPro
       ref={dialogRef}
       aria-labelledby={titleId}
       aria-busy={busy}
-      className="app-modal rounded-panel border border-border bg-surface-raised text-foreground shadow-panel"
+      className="app-modal"
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) {
@@ -50,17 +49,11 @@ export function Modal({ open, title, children, onClose, busy = false }: ModalPro
       }}
     >
       <div className="app-modal__content">
-        <header className="mb-6 flex items-start justify-between gap-4">
-          <h2 id={titleId} className="text-body font-semibold">
+        <header className="app-modal__header">
+          <h2 id={titleId} className="app-modal__title">
             {title}
           </h2>
-          <button
-            ref={closeRef}
-            type="button"
-            disabled={busy}
-            onClick={onClose}
-            className={`${secondaryButtonClass} shrink-0`}
-          >
+          <button ref={closeRef} type="button" disabled={busy} onClick={onClose} className="app-modal__close">
             닫기
           </button>
         </header>

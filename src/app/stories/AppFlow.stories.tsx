@@ -13,10 +13,10 @@ let restoreDemoStorage = () => {};
 function RouteReadback({ onRemount }: { onRemount: (path: string) => void }) {
   const location = useLocation();
   return (
-    <>
+    <aside aria-label="회귀 검사 도구" className="bg-canvas p-2 text-foreground">
       <output aria-label="현재 경로">{location.pathname}</output>
       <button onClick={() => onRemount(location.pathname)}>앱 새로 마운트</button>
-    </>
+    </aside>
   );
 }
 function AppRegression() {
@@ -34,6 +34,7 @@ const meta = {
   tags: ['!autodocs'],
   globals: { viewport: { value: 'mobile390', isRotated: false } },
   parameters: {
+    canvasIncludesMain: true,
     docs: {
       description: {
         component:

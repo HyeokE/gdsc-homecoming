@@ -8,6 +8,7 @@ import { NicknameScreen } from './components/CheckInForm';
 import { TicketScreen } from './components/screens/TicketScreen';
 import { EnlargedTicketModal } from './components/EnlargedTicketModal';
 import { ReissueConfirmModal } from './components/ReissueConfirmModal';
+import { TestAccountChip } from './components/TestAccountChip/TestAccountChip';
 import { primaryButtonClass } from '@/components/common/buttonClasses';
 import type { InputScreenError, InputScreenStatus } from './components/CheckInForm';
 import { getDestination } from './constants/destinations';
@@ -193,7 +194,9 @@ function TicketContainer({
         setVerified(saved);
         setTicket(result);
         setBooting(false);
-        navigate(restoredTicketRoute(requestedResultPath.current, result?.id ?? null), { replace: true });
+        navigate(restoredTicketRoute(requestedResultPath.current, result?.id ?? null, !isTestAccount(saved)), {
+          replace: true,
+        });
         requestedResultPath.current = '';
       })
       .catch((err) => {
@@ -264,7 +267,7 @@ function TicketContainer({
       }
       operation.current = null;
       uncertain.current = false;
-      navigate(restoredTicketRoute(requestedResultPath.current, result?.id ?? null));
+      navigate(restoredTicketRoute(requestedResultPath.current, result?.id ?? null, !isTestAccount(normalized)));
       requestedResultPath.current = '';
     } catch (err) {
       setError(inputError(err));
@@ -350,8 +353,11 @@ function TicketContainer({
       busy.current = false;
     }
   }
-  const guard = guardedTicketRoute(location.pathname, verified, ticket?.id ?? null);
   const isResultRoute = ticketIdFromResultPath(location.pathname) !== null;
+  const guard =
+    testAccount && isResultRoute
+      ? restoredTicketRoute(location.pathname, ticket?.id ?? null, false)
+      : guardedTicketRoute(location.pathname, verified, ticket?.id ?? null);
   const issuingView = ticket ? (
     <IssuingFlow
       key={`${ticket.id}:${ticket.revision}`}
@@ -418,13 +424,42 @@ function TicketContainer({
       tabIndex={-1}
       className={`mx-auto flex min-h-svh w-full flex-col items-start py-4 text-foreground ${isResultRoute && !booting ? 'ticket-result-page max-w-none px-page' : location.pathname === '/issuer' && !booting ? 'max-w-none bg-canvas px-0' : location.pathname === '/departure' && !booting ? 'max-w-[960px] bg-canvas px-page' : 'max-w-mobile bg-canvas px-4'}`}
     >
-      {(testAccount || mode !== 'firebase') && (
+      {testAccount && (
+        <TestAccountChip
+          disabled={status !== 'idle' || reissueStatus === 'loading' || reissueStatus === 'checking-result'}
+          onReset={() => {
+            if (busy.current) {
+              return;
+            }
+            runtime.testService.reset();
+            try {
+              sessionStorage.removeItem(sessionKey);
+            } catch {
+              /* Local test ticket has already been cleared. */
+            }
+            setTicket(null);
+            setVerified(null);
+            setNickname('');
+            setEmail('test@gmail.com');
+            setIsReplaying(false);
+            setReissueOpen(false);
+            setEnlarge(false);
+            setReissueStatus('available');
+            setReissueError(undefined);
+            setError(undefined);
+            resetSave();
+            operation.current = null;
+            uncertain.current = false;
+            requestedResultPath.current = '';
+            navigate(TICKET_ROUTES.email, { replace: true });
+          }}
+        />
+      )}
+      {!testAccount && mode !== 'firebase' && (
         <p className="mb-4 text-caption text-muted">
-          {testAccount
-            ? '테스트 계정 · 이 브라우저에만 저장되며 실제 참가 인원에 포함되지 않아요. 재발급은 횟수 제한 없이 할 수 있어요.'
-            : mode === 'demo'
-              ? '데모 · 예시 이메일의 탑승권만 이 브라우저에 저장돼요. 실제 행사 발권은 아닙니다.'
-              : '테스트 · Firebase 에뮬레이터에 저장돼요. 실제 행사 발권은 아닙니다.'}
+          {mode === 'demo'
+            ? '데모 · 예시 이메일의 탑승권만 이 브라우저에 저장돼요. 실제 행사 발권은 아닙니다.'
+            : '테스트 · Firebase 에뮬레이터에 저장돼요. 실제 행사 발권은 아닙니다.'}
         </p>
       )}
       {booting ? (

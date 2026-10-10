@@ -133,8 +133,27 @@ describe('paper orientation and fallback', () => {
     expect(rotation[8]).toBe(1);
   });
 
-  test('combined tilt and roll form an orthonormal rotation with no card-like shear', () => {
-    const rotation = paperRotation({ ...flat, tiltX: 35, tiltY: -25, roll: 90 });
+  test.each(['tiltX', 'tiltY'] as const)('half a turn around %s exposes the back of the paper', (axis) => {
+    const rotation = paperRotation({ ...flat, [axis]: 180 });
+    // The third column transforms the front-facing normal (0, 0, 1).
+    expect(rotation[6]).toBeCloseTo(0, 6);
+    expect(rotation[7]).toBeCloseTo(0, 6);
+    expect(rotation[8]).toBeCloseTo(-1, 6);
+  });
+
+  test.each([360, -360, 720, -1080])('a complete %s degree turn restores the front and its orientation', (angle) => {
+    const rotation = paperRotation({ ...flat, tiltX: angle, tiltY: angle, roll: angle });
+    const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    rotation.forEach((value, index) => expect(value).toBeCloseTo(identity[index], 6));
+  });
+
+  test.each([
+    { tiltX: 35, tiltY: -25, roll: 90 },
+    { tiltX: 160, tiltY: -220, roll: 90 },
+    { tiltX: -570, tiltY: 835, roll: -450 },
+    { tiltX: Number.MAX_VALUE, tiltY: -Number.MAX_VALUE, roll: Number.MAX_VALUE },
+  ])('combined tilt and roll retain lengths, angles, and handedness %#', (angles) => {
+    const rotation = paperRotation({ ...flat, ...angles });
     for (let column = 0; column < 3; column++) {
       const vector = rotation.slice(column * 3, column * 3 + 3);
       expect(Math.hypot(...vector)).toBeCloseTo(1, 6);
@@ -143,6 +162,20 @@ describe('paper orientation and fallback', () => {
         expect(dot).toBeCloseTo(0, 6);
       }
     }
+    const determinant =
+      rotation[0] * (rotation[4] * rotation[8] - rotation[7] * rotation[5]) -
+      rotation[3] * (rotation[1] * rotation[8] - rotation[7] * rotation[2]) +
+      rotation[6] * (rotation[1] * rotation[5] - rotation[4] * rotation[2]);
+    expect(determinant).toBeCloseTo(1, 6);
+  });
+
+  test('nonfinite angles fall back independently without discarding valid orientation', () => {
+    const actual = paperRotation({ ...flat, tiltX: Infinity, tiltY: 180, roll: NaN });
+    const expected = paperRotation({ ...flat, tiltY: 180 });
+    expect(Array.from(actual)).toEqual(Array.from(expected));
+
+    const reset = paperRotation({ ...flat, tiltX: NaN, tiltY: -Infinity, roll: Infinity });
+    expect(Array.from(reset)).toEqual(Array.from(paperRotation(flat)));
   });
 
   test('unsupported or rejected WebGL initialization returns the caller-controlled fallback', () => {

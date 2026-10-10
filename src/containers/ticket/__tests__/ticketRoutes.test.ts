@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import {
+  TICKET_ROUTES,
   guardedTicketRoute,
   restoredTicketRoute,
   ticketIdFromResultPath,
@@ -47,4 +48,13 @@ test('a mismatched or missing result stays on its URL and never renders another 
   expect(ticketMatchesResultRoute(resultPath, otherTicketId)).toBe(false);
   expect(ticketMatchesResultRoute(resultPath, null)).toBe(false);
   expect(ticketMatchesResultRoute('/ticket', ticketId)).toBe(false);
+});
+
+test('test sessions leave obsolete result URLs for the current local ticket or fresh issuance', () => {
+  const obsoletePath = ticketResultPath('previous-server-ticket');
+  expect(restoredTicketRoute(obsoletePath, null, false)).toBe(TICKET_ROUTES.nickname);
+  expect(restoredTicketRoute(obsoletePath, 'current-local-ticket', false)).toBe(
+    ticketResultPath('current-local-ticket'),
+  );
+  expect(restoredTicketRoute(obsoletePath, 'participant-ticket')).toBe(obsoletePath);
 });

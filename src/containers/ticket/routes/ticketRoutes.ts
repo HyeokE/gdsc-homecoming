@@ -24,8 +24,8 @@ export function ticketIdFromResultPath(path: string): string | null {
   }
 }
 
-export function restoredTicketRoute(requestedPath: string, ticketId: string | null) {
-  if (ticketIdFromResultPath(requestedPath) !== null) {
+export function restoredTicketRoute(requestedPath: string, ticketId: string | null, preserveRequestedResult = true) {
+  if (preserveRequestedResult && ticketIdFromResultPath(requestedPath) !== null) {
     return requestedPath;
   }
   return ticketId ? ticketResultPath(ticketId) : TICKET_ROUTES.nickname;

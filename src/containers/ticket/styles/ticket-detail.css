@@ -87,17 +87,6 @@ body:has(.ticket-result-page) {
   cursor: not-allowed;
 }
 
-.ticket-detail__save-note {
-  max-width: 350px;
-  min-height: 36px;
-  margin: 12px auto 0;
-  color: #686e74;
-  font-size: 12px;
-  line-height: 1.7;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
 .ticket-detail__section {
   margin-top: 32px;
   padding-top: 28px;

@@ -9,7 +9,7 @@ export interface TicketRuntime {
   mode: 'demo' | 'firebase' | 'emulator';
   sessionKey: string;
   service: TicketService;
-  testService: TicketService;
+  testService: TicketService & { reset: () => void };
 }
 
 export function getServiceForEmail(runtime: TicketRuntime, email: string | null): TicketService {

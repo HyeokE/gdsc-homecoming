@@ -89,11 +89,21 @@
   top: 50%;
   width: 1000px;
   transform: translate(-50%, -50%) perspective(1800px) rotate(var(--viewer-roll, 0deg))
-    rotateX(var(--viewer-tilt-x, 0deg)) rotateY(var(--viewer-tilt-y, 0deg)) scale(var(--viewer-fit, 0.3));
+    rotateY(var(--viewer-tilt-y, 0deg)) rotateX(var(--viewer-tilt-x, 0deg)) scale(var(--viewer-fit, 0.3));
+  transform-style: preserve-3d;
   pointer-events: none;
 }
 .ticket-viewer__print {
   width: 1000px;
+  backface-visibility: hidden;
+}
+.ticket-viewer__back {
+  position: absolute;
+  inset: 0;
+  background: #f5f1ea;
+  border-radius: 1px;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
 }
 .ticket-viewer__print .boarding-pass {
   box-shadow: none;

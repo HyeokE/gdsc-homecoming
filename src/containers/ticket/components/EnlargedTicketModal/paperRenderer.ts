@@ -182,9 +182,10 @@ void main() {
 /** Column-major rotation: local X/Y tilt, then CSS-compatible clockwise roll. */
 export function paperRotation(pose: PaperPose): Float32Array {
   const radians = Math.PI / 180;
-  const x = clamp(finite(pose.tiltX), -85, 85) * radians;
-  const y = clamp(finite(pose.tiltY), -85, 85) * radians;
-  const z = -finite(pose.roll ?? 0) * radians;
+  // Preserve complete turns while keeping trigonometry stable after repeated dragging.
+  const x = (finite(pose.tiltX) % 360) * radians;
+  const y = (finite(pose.tiltY) % 360) * radians;
+  const z = -(finite(pose.roll ?? 0) % 360) * radians;
   const cx = Math.cos(x);
   const sx = Math.sin(x);
   const cy = Math.cos(y);

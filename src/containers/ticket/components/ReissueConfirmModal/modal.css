@@ -1,44 +1,126 @@
 .app-modal {
-  /* Keep the dialog palette complete, independent of the page it opens over. */
-  --ui-surface-raised: #fff;
+  /* Match the boarding pass paper even when opened over a dark screen. */
+  --ui-surface-raised: #f0eee8;
   --ui-foreground: #20252a;
-  --ui-muted: #64696e;
-  --ui-border: #d8dadd;
-  --ui-primary: #2459a8;
-  --ui-primary-hover: #1c4b91;
-  --ui-primary-active: #163d78;
-  --ui-on-primary: #fff;
-  --ui-disabled: #e9ebed;
-  --ui-on-disabled: #64696e;
+  --ui-muted: #64645f;
+  --ui-border: #d5d2ca;
+  --ui-primary: #20252a;
+  --ui-primary-hover: #363b3f;
+  --ui-primary-active: #171b1e;
+  --ui-on-primary: #faf9f6;
+  --ui-disabled: #e9e6df;
+  --ui-on-disabled: #6b6b65;
   --ui-info: #805600;
   --ui-error: #b42338;
-  --ui-focus: #2459a8;
+  --ui-focus: #20252a;
   color-scheme: light;
   width: calc(100% - 32px);
-  max-width: 500px;
+  max-width: 460px;
   max-height: calc(100svh - 32px);
   padding: 0;
   margin: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: 3px;
+  background: #faf9f6;
+  color: var(--ui-foreground);
+  box-shadow: 0 16px 48px rgb(32 37 42 / 16%);
 }
 .app-modal::backdrop {
-  background: rgb(0 0 0 / 70%);
+  background: rgb(32 33 30 / 45%);
 }
 .app-modal__content {
-  padding: 20px;
+  padding: 28px;
   overflow: auto;
   max-height: calc(100svh - 34px);
   overscroll-behavior: contain;
 }
-.ticket-enlarged {
-  overflow: auto;
-  padding: 4px 0 12px;
+.app-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
 }
-.ticket-enlarged > .boarding-pass {
-  width: 1080px;
+.app-modal__title {
+  margin: 0;
+  padding-top: 6px;
+  max-width: 250px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+.app-modal__close {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 0 8px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ui-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.app-modal__close:hover:not(:disabled) {
+  color: var(--ui-foreground);
+}
+.app-modal__close:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 2px;
+}
+.app-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.app-modal__country {
+  margin: 0;
+  padding: 16px 0;
+  border-block: 1px solid var(--ui-border);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.app-modal__description {
+  margin-top: 16px;
+  color: var(--ui-muted);
+  font-size: 14px;
+  line-height: 1.8;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.app-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+.app-modal__actions > button {
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.app-modal__actions > .terminal-button {
   box-shadow: none;
+}
+@media (max-width: 380px) {
+  .app-modal__content {
+    padding: 22px;
+  }
+  .app-modal__title {
+    font-size: 20px;
+  }
 }
 @media (max-height: 450px) {
   .app-modal__content {
-    padding: 12px;
+    padding: 16px 24px;
+  }
+  .app-modal__header {
+    margin-bottom: 16px;
+  }
+  .app-modal__actions {
+    margin-top: 20px;
   }
 }

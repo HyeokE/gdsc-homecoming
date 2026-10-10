@@ -77,7 +77,6 @@ export function TicketScreen({
         <button type="button" onClick={onReplay} className="ticket-detail__button">
           발권 애니메이션 다시보기
         </button>
-        <p className="ticket-detail__note">현재 탑승권 그대로 다시 감상할 수 있어요. 재발급 횟수는 차감되지 않아요.</p>
       </div>
       {(saveStatus === 'success' || saveStatus === 'error') && (
         <TicketSaveToast
@@ -90,7 +89,6 @@ export function TicketScreen({
           }
         />
       )}
-      <p className="ticket-detail__save-note">항공편·현장 입장권이 아닌 기념 탑승권이에요.</p>
       <section className="ticket-detail__section ticket-detail__destination" aria-labelledby="destination-heading">
         <h2 id="destination-heading" className="ticket-detail__heading">
           {destination.name}에서 돌아오는 길

@@ -46,7 +46,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
     let paperWidth = 1;
     let paperHeight = 1;
     let roll = 0;
-    let pointer: { id: number; x: number; y: number } | null = null;
+    let pointer: { id: number; x: number; y: number; tiltX: number; tiltY: number } | null = null;
     let current = { ...REST_POSE };
     let target = { ...REST_POSE };
     const velocity = { tiltX: 0, tiltY: 0, bendX: 0, bendY: 0, lift: 0, grabX: 0, grabY: 0 };
@@ -96,14 +96,20 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
       }
     }
 
-    function reset() {
+    function release() {
       const id = pointer?.id;
       pointer = null;
       delete paper!.dataset.dragging;
       if (id !== undefined && paper!.hasPointerCapture(id)) {
         paper!.releasePointerCapture(id);
       }
-      target = { ...target, ...REST_POSE, grabX: current.grabX, grabY: current.grabY, roll };
+      target = { ...target, bendX: 0, bendY: 0, lift: 0 };
+      wake();
+    }
+
+    function reset() {
+      release();
+      target = { ...REST_POSE, grabX: current.grabX, grabY: current.grabY, roll };
       if (motion.matches) {
         target.tiltX = 0;
         target.tiltY = 0;
@@ -116,7 +122,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
       height = stage!.clientHeight;
       const nextRoll = height > width * 1.15 ? 90 : 0;
       if (nextRoll !== roll) {
-        reset();
+        release();
       }
       roll = nextRoll;
       const aspect = (texture?.height ?? print!.offsetHeight) / (texture?.width ?? 1000);
@@ -142,7 +148,11 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
       const point = localPoint(event.clientX - rect.left - width / 2, event.clientY - rect.top - height / 2);
       target.grabX = clamp(point.x / (paperWidth / 2), 1);
       target.grabY = clamp(point.y / (paperHeight / 2), 1);
-      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, tiltX: current.tiltX, tiltY: current.tiltY };
+      target.tiltX = current.tiltX;
+      target.tiltY = current.tiltY;
+      velocity.tiltX = 0;
+      velocity.tiltY = 0;
       target.lift = motion.matches ? 0 : 12;
       wake();
     }
@@ -154,8 +164,8 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
       const delta = localPoint(event.clientX - pointer.x, event.clientY - pointer.y);
       const x = delta.x / Math.max(1, paperWidth);
       const y = delta.y / Math.max(1, paperHeight);
-      target.tiltX = clamp(-5 - y * 22, 18);
-      target.tiltY = clamp(-7 + x * 32, 22);
+      target.tiltX = pointer.tiltX - y * 360;
+      target.tiltY = pointer.tiltY + x * 360;
       target.bendX = motion.matches ? 0 : clamp(x * 2.8 + y * current.grabX * 1.1, 0.95);
       target.bendY = motion.matches ? 0 : clamp(y * 1.8 + x * current.grabY * 0.6, 0.7);
       target.lift = motion.matches ? 0 : Math.min(32, 12 + Math.hypot(delta.x, delta.y) * 0.08);
@@ -164,7 +174,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
 
     function handlePointerEnd(event: globalThis.PointerEvent) {
       if (pointer?.id === event.pointerId) {
-        reset();
+        release();
       }
     }
 
@@ -178,8 +188,8 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
         const delta = localPoint(direction[0], direction[1]);
         target.grabX = delta.x;
         target.grabY = delta.y;
-        target.tiltX = clamp(target.tiltX - delta.y * 4, 18);
-        target.tiltY = clamp(target.tiltY + delta.x * 4, 22);
+        target.tiltX -= delta.y * 15;
+        target.tiltY += delta.x * 15;
         target.bendX = motion.matches ? 0 : clamp(target.bendX + delta.x * 0.18, 0.75);
         target.bendY = motion.matches ? 0 : clamp(target.bendY + delta.y * 0.14, 0.55);
         wake();
@@ -188,7 +198,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
 
     function handleVisibility() {
       if (document.hidden) {
-        reset();
+        release();
         cancelAnimationFrame(frame);
         frame = 0;
         current = { ...target };
@@ -229,8 +239,8 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
     paper.addEventListener('lostpointercapture', handlePointerEnd);
     paper.addEventListener('keydown', handleKey);
     paper.addEventListener('dblclick', reset);
-    window.addEventListener('blur', reset);
-    motion.addEventListener('change', reset);
+    window.addEventListener('blur', release);
+    motion.addEventListener('change', release);
     document.addEventListener('visibilitychange', handleVisibility);
     canvas.addEventListener('webglcontextlost', handleContextLost);
     canvas.addEventListener('webglcontextrestored', handleContextRestored);
@@ -274,8 +284,8 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
       paper.removeEventListener('lostpointercapture', handlePointerEnd);
       paper.removeEventListener('keydown', handleKey);
       paper.removeEventListener('dblclick', reset);
-      window.removeEventListener('blur', reset);
-      motion.removeEventListener('change', reset);
+      window.removeEventListener('blur', release);
+      motion.removeEventListener('change', release);
       document.removeEventListener('visibilitychange', handleVisibility);
       canvas.removeEventListener('webglcontextlost', handleContextLost);
       canvas.removeEventListener('webglcontextrestored', handleContextRestored);
@@ -315,7 +325,7 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
             className="ticket-viewer__paper"
             tabIndex={0}
             role="application"
-            aria-label={`${result.passengerName}님의 전체 탑승권. 가장자리를 잡고 드래그해서 종이 휘기`}
+            aria-label={`${result.passengerName}님의 전체 탑승권. 잡고 드래그해서 앞뒷면 돌려보기`}
             aria-describedby={hintId}
             aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Home"
           >
@@ -323,14 +333,15 @@ export function EnlargedTicketModal({ open, result, onClose }: EnlargedTicketMod
               <div ref={printRef} className="ticket-viewer__print">
                 <BoardingPass result={result} exportMode displayMode="expanded" />
               </div>
+              <div className="ticket-viewer__back" aria-hidden="true" />
             </div>
             <canvas ref={canvasRef} className="ticket-viewer__canvas" aria-hidden="true" />
           </div>
           {/* eslint-enable jsx-a11y/no-noninteractive-tabindex */}
         </div>
         <p id={hintId} className="ticket-viewer__hint">
-          가장자리를 잡고, 살짝 움직여보세요
-          <span className="sr-only">. 방향키로 기울이거나 구부리고 Home 키로 펼칠 수 있어요.</span>
+          티켓을 잡고 돌려보세요 · 두 번 누르면 원래대로
+          <span className="sr-only">. 방향키로 앞뒷면을 돌려볼 수 있어요. Home 키로 앞면으로 돌아갑니다.</span>
         </p>
       </div>
     </dialog>

@@ -42,7 +42,7 @@ function BoardingPassStubContent({ result }: Pick<BoardingPassProps, 'result'>) 
         <AirlineBrand className="boarding-pass__brand" />
         <span>BOARDING PASS</span>
       </header>
-      <strong className="boarding-pass__stub-name">{result.passengerName}</strong>
+      <strong className="boarding-pass__stub-name">{result.passengerName.toUpperCase()}</strong>
       <dl className="boarding-pass__stub-fields">
         <div>
           <dt>FROM</dt>
@@ -97,7 +97,7 @@ export function BoardingPassStub({ result, exportMode = false }: Pick<BoardingPa
   return (
     <article
       className={`boarding-pass boarding-pass--detached ${exportMode ? '' : 'boarding-pass--paper'}`}
-      aria-label={`${result.passengerName}님의 ${result.city} 출발, 인천행 탑승권 절취 부분`}
+      aria-label={`${result.passengerName.toUpperCase()}님의 ${result.city} 출발, 인천행 탑승권 절취 부분`}
       data-ticket-export
     >
       <div className="boarding-pass__stub">
@@ -112,7 +112,7 @@ export function BoardingPass({ result, exportMode = false, displayMode = 'compac
   return (
     <article
       className={`boarding-pass boarding-pass--${displayMode} ${exportMode ? '' : 'boarding-pass--paper'}`}
-      aria-label={`${result.passengerName}님의 ${result.city} 출발, 인천행 기념 탑승권`}
+      aria-label={`${result.passengerName.toUpperCase()}님의 ${result.city} 출발, 인천행 기념 탑승권`}
       data-ticket-export
     >
       <div className="boarding-pass__main">
@@ -123,7 +123,7 @@ export function BoardingPass({ result, exportMode = false, displayMode = 'compac
         <dl className="boarding-pass__identity">
           <div className="boarding-pass__passenger">
             <dt>성명 NAME</dt>
-            <dd>{result.passengerName}</dd>
+            <dd>{result.passengerName.toUpperCase()}</dd>
           </div>
           <div>
             <dt>출발 FROM</dt>
