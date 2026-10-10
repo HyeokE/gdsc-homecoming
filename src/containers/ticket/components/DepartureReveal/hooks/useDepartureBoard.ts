@@ -24,21 +24,20 @@ export function useDepartureBoard(
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const matrix = matrixRef.current;
-        if (!matrix) {
+        const board = matrix?.closest<HTMLElement>('.departure-board');
+        const page = matrix?.closest('main');
+        if (!matrix || !board || !page) {
           return;
         }
         const styles = getComputedStyle(matrix);
         const rowHeight = Number.parseFloat(styles.gridAutoRows);
         const rowGap = Number.parseFloat(styles.rowGap) || 0;
-        // Visual board scale must not change how many final-layout rows fit.
-        let top = -window.scrollY;
-        let element: HTMLElement | null = matrix;
-        while (element) {
-          top += element.offsetTop;
-          element = element.offsetParent as HTMLElement | null;
-        }
-        // Leave room for the matrix borders, lower case edge and page inset.
-        const available = window.innerHeight - top - 20;
+        // Centering changes the board's top, so capacity must use the full page
+        // space and untransformed dimensions rather than its current position.
+        const pageStyles = getComputedStyle(page);
+        const pageInset = Number.parseFloat(pageStyles.paddingTop) + Number.parseFloat(pageStyles.paddingBottom);
+        const boardChrome = board.offsetHeight - matrix.clientHeight;
+        const available = window.innerHeight - pageInset - boardChrome;
         const count = fittingMockRows(available, rowHeight, rowGap, actualRows);
         setMockCount(count);
         onRowCapacity?.(count + 1);

@@ -1,5 +1,8 @@
 .departure-reveal {
   --font-flap: 'DIN Condensed', 'Arial Narrow', var(--font-mono);
+  display: flex;
+  flex: 1;
+  align-items: center;
   container-type: inline-size;
   overflow: clip;
 }
@@ -122,15 +125,16 @@
   display: block;
   width: 100%;
   height: 100%;
-  animation: departure-guide-tap 440ms ease-in-out 120ms 2;
+  animation: departure-guide-tap 1500ms ease-in-out infinite;
 }
 @keyframes departure-guide-tap {
   0%,
+  60%,
   100% {
-    transform: translate(0, 0);
+    transform: translateY(-5px);
   }
-  45% {
-    transform: translate(-2px, -2px);
+  30% {
+    transform: translateY(1px);
   }
 }
 .departure-board--ready .departure-row-action {

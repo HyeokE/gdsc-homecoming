@@ -90,7 +90,7 @@ function IssuingFlow({
     return <Navigate to="/issuer" replace />;
   }
   return (
-    <section className="relative w-full min-w-0">
+    <section className={`relative w-full min-w-0 ${issuer ? '' : 'flex flex-1 flex-col'}`}>
       {isReplay && (
         <button
           type="button"
