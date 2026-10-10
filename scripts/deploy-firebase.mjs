@@ -5,6 +5,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadEnv } from 'vite';
 
 export const PROJECT_ID = 'gdsc-homecomming';
+export const HOSTING_SITE_ID = 'gdsc-homecoming';
+export const LEGACY_HOSTING_SITE_ID = 'gdsc-homecomming';
 export const DEPLOY_SCOPES = 'hosting,firestore:rules,firestore:indexes';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONFIG_KEYS = [
@@ -85,17 +87,38 @@ export function validateEnvironment(environment) {
 
 export function validateFirebaseConfig(root) {
   const config = JSON.parse(readFileSync(resolve(root, 'firebase.json'), 'utf8'));
+  const sites = Array.isArray(config.hosting) ? config.hosting : [];
+  const primary = sites.find((site) => site?.site === HOSTING_SITE_ID);
+  const legacy = sites.find((site) => site?.site === LEGACY_HOSTING_SITE_ID);
   if (
-    Array.isArray(config.hosting) ||
-    config.hosting?.site !== PROJECT_ID ||
-    config.hosting?.public !== 'dist' ||
+    sites.some((site) => site?.predeploy || site?.postdeploy) ||
+    config.firestore?.predeploy ||
+    config.firestore?.postdeploy
+  ) {
+    throw new Error('Deployment hooks are not supported; use the checked CLI pipeline.');
+  }
+  if (
+    sites.length !== 2 ||
+    !primary ||
+    !legacy ||
+    primary.public !== 'dist' ||
+    primary.source ||
+    primary.target ||
+    primary.redirects?.length ||
+    primary.rewrites?.length !== 1 ||
+    Object.keys(primary.rewrites[0] ?? {}).some((key) => !['source', 'destination'].includes(key)) ||
+    primary.rewrites[0].source !== '**' ||
+    primary.rewrites[0].destination !== '/index.html' ||
+    Object.keys(legacy).some((key) => !['site', 'redirects'].includes(key)) ||
+    legacy.redirects?.length !== 1 ||
+    Object.keys(legacy.redirects[0] ?? {}).some((key) => !['source', 'destination', 'type'].includes(key)) ||
+    legacy.redirects[0].source !== '/:path*' ||
+    legacy.redirects[0].destination !== `https://${HOSTING_SITE_ID}.web.app/:path` ||
+    legacy.redirects[0].type !== 301 ||
     config.firestore?.rules !== 'firestore.rules' ||
     config.firestore?.indexes !== 'firestore.indexes.json'
   ) {
-    throw new Error('firebase.json must target the expected Hosting site and Firestore files.');
-  }
-  if (config.hosting.predeploy || config.firestore.predeploy) {
-    throw new Error('Deployment hooks are not supported; use the checked CLI pipeline.');
+    throw new Error('firebase.json must target the expected Hosting sites, canonical redirect, and Firestore files.');
   }
 }
 
@@ -169,7 +192,7 @@ Default: validate production config, check, emulator tests, build, then deploy.
 --dry-run   Validate and print commands; never build, start emulators, or deploy.
 --prebuilt  Deploy existing dist after validation; CI must run checks and tests first.
 
-Target: ${PROJECT_ID}; scopes: ${DEPLOY_SCOPES}
+Project: ${PROJECT_ID}; Hosting: ${HOSTING_SITE_ID} + ${LEGACY_HOSTING_SITE_ID} (redirect); scopes: ${DEPLOY_SCOPES}
 Uses Firebase CLI login or Application Default Credentials. Requires Java 21+
 and a free Firestore emulator port for the default test pipeline.`);
     return;
@@ -181,6 +204,7 @@ and a free Firestore emulator port for the default test pipeline.`);
     validateBuild(root, production);
   }
   log(`Firebase deployment target: ${PROJECT_ID} (${DEPLOY_SCOPES})`);
+  log(`Hosting: ${HOSTING_SITE_ID}; legacy redirect: ${LEGACY_HOSTING_SITE_ID}`);
   if (options.dryRun) {
     commands.forEach(([command, commandArgs]) => log(`${command} ${commandArgs.join(' ')}`));
     log('Dry run complete. No commands executed and no resources changed.');

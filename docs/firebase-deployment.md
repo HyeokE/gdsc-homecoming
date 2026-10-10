@@ -1,10 +1,14 @@
 # Firebase 자동 배포
 
-배포 대상은 Firebase 프로젝트 `gdsc-homecomming`의 Hosting 사이트와 Firestore 규칙·인덱스다. Hosting 주소는 [gdsc-homecomming.web.app](https://gdsc-homecomming.web.app)이며, `dist/`를 배포하고 앱 경로는 SPA의 `index.html`로 연결한다.
+Firebase 프로젝트 ID는 `gdsc-homecomming`으로 유지한다. 새 Hosting 사이트 ID는 `gdsc-homecoming`이며, 대표 주소는 [gdsc-homecoming.web.app](https://gdsc-homecoming.web.app)이다. `dist/`를 새 사이트에 배포하고 앱 경로는 SPA의 `index.html`로 연결한다. 프로젝트 ID와 Hosting 사이트 ID는 서로 다르므로 Firebase SDK·Firestore·Storage·OIDC의 프로젝트 설정을 새 도메인 철자로 바꾸지 않는다.
+
+`firebase.json`은 같은 프로젝트의 Hosting 사이트 두 개를 함께 배포한다. 기존 `gdsc-homecomming` 사이트는 파일을 배포하지 않고 `source: "/:path*"`, `destination: "https://gdsc-homecoming.web.app/:path"`, `type: 301`로 경로를 유지해 새 사이트로 이동시킨다. `*`는 캡처하는 source에만 들어간다. 이 구문은 [Firebase 경로 캡처 문서](https://firebase.google.com/docs/hosting/full-config#capture_url_segments_for_redirects)를 따른다. 신규 사이트의 `no-cache` 및 `/assets/**` 장기 캐시 헤더와 SPA rewrite는 기존 동작을 유지한다.
+
+도메인이 달라지면 브라우저 저장소도 분리된다. 기존 주소의 세션은 새 주소로 복사되지 않으므로 참가자는 이메일을 다시 입력해 Firestore의 기존 탑승권을 복원한다. 새 도메인 배포 검증은 `/`, `/user/result/<uuid>`, query가 있는 경로의 이전 주소 301 응답과 새 사이트 응답을 확인해야 한다. 아래 기록은 도메인 이전 전의 배포 증거이며, 설정 변경만으로 새 도메인 배포 완료를 의미하지 않는다.
 
 Cloud Functions와 Apps Script는 이 Firebase 배포에 포함하지 않는다. 실시간 신청자 확인용 Apps Script 웹 앱은 별도로 배포하고 공개 `/exec` URL을 GitHub 저장소 변수 `VITE_ROSTER_LOOKUP_URL`에 설정해야 한다. 프런트 재빌드·배포 후 이메일 확인마다 시트를 읽는 [실시간 신청자 확인](firebase-setup.md#실시간-신청자-확인)을 사용한다. URL을 설정하지 않은 환경에서는 [수동 명단 가져오기](firebase-setup.md#명단-가져오기)를 대체 경로로 사용할 수 있다. 정기 동기화 트리거는 설치하지 않았다.
 
-## 현재 상태
+## 이전 도메인 배포 기록
 
 2026-10-10 17:27 KST에 로컬 CLI로 Firebase Hosting·Firestore 규칙·인덱스를 운영 프로젝트 `gdsc-homecomming`에 배포했다. Firebase CLI의 Hosting release complete와 Deploy complete를 확인했다. [운영 사이트](https://gdsc-homecomming.web.app)의 `/`와 `/preview/departure`가 HTTP 200이며 배포한 `dist/index.html`과 일치한다. JS·CSS·폰트·이미지 네 파일의 응답 바이트도 로컬 빌드와 모두 일치했다.
 
@@ -32,7 +36,7 @@ bun run deploy:firebase
 | `--prebuilt --dry-run` | 기존 빌드의 파일과 Firebase 설정까지 검증한 뒤 예정 배포 명령만 출력한다. |
 | `--help` | 지원 옵션과 배포 대상을 출력한다. |
 
-배포 CLI는 대상 프로젝트와 범위를 다음과 같이 고정한다. 다른 프로젝트 또는 Cloud Functions로 배포하는 옵션은 제공하지 않는다.
+배포 CLI는 프로젝트 `gdsc-homecomming`과 범위를 다음과 같이 고정한다. Hosting 설정은 정확히 `gdsc-homecoming` 본 사이트와 `gdsc-homecomming` 이전 주소 리다이렉트 사이트로 제한한다. 누락·중복·다른 사이트, 잘못된 리다이렉트, 배포 hook은 CLI 실행 전에 거부한다. 다른 프로젝트 또는 Cloud Functions로 배포하는 옵션은 제공하지 않는다.
 
 ```sh
 bunx firebase deploy --project gdsc-homecomming --only hosting,firestore:rules,firestore:indexes --non-interactive

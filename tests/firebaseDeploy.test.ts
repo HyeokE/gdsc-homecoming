@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -8,6 +8,7 @@ import {
   parseArguments,
   validateBuild,
   validateEnvironment,
+  validateFirebaseConfig,
 } from '../scripts/deploy-firebase.mjs';
 
 const environment = {
@@ -21,19 +22,22 @@ const environment = {
   VITE_FIREBASE_APP_ID: '1:123456789:web:abcdef123456',
 };
 const folders: string[] = [];
+const primaryHosting = {
+  site: 'gdsc-homecoming',
+  public: 'dist',
+  rewrites: [{ source: '**', destination: '/index.html' }],
+};
+const legacyHosting = {
+  site: 'gdsc-homecomming',
+  redirects: [{ source: '/:path*', destination: 'https://gdsc-homecoming.web.app/:path', type: 301 }],
+};
+function firebaseConfig(hosting: unknown = [primaryHosting, legacyHosting]) {
+  return { hosting, firestore: { rules: 'firestore.rules', indexes: 'firestore.indexes.json' } };
+}
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'gdg-firebase-deploy-'));
   folders.push(root);
-  writeFileSync(
-    join(root, 'firebase.json'),
-    JSON.stringify({
-      hosting: { site: 'gdsc-homecomming', public: 'dist' },
-      firestore: {
-        rules: 'firestore.rules',
-        indexes: 'firestore.indexes.json',
-      },
-    }),
-  );
+  writeFileSync(join(root, 'firebase.json'), JSON.stringify(firebaseConfig()));
   mkdirSync(join(root, 'dist', 'assets'), { recursive: true });
   writeFileSync(join(root, 'dist', 'index.html'), '<script type="module" src="/assets/main.js"></script>');
   writeFileSync(join(root, 'dist', 'assets', 'main.js'), `const environment = ${JSON.stringify(environment)}`);
@@ -205,24 +209,70 @@ describe('Firebase deployment CLI boundaries', () => {
     expect(() => validateBuild(root, environment)).toThrow('demo tickets or Firebase emulators');
   });
 
-  test('rejects deployment hooks and mismatched Hosting site before invoking CLI', () => {
+  test('checked-in multisite config preserves SPA/cache behavior and captures all legacy paths', () => {
+    const root = new URL('..', import.meta.url).pathname;
+    expect(() => validateFirebaseConfig(root)).not.toThrow();
+    const config = JSON.parse(readFileSync(join(root, 'firebase.json'), 'utf8'));
+    expect(config.hosting).toHaveLength(2);
+    const primary = config.hosting.find((site: { site: string }) => site.site === 'gdsc-homecoming');
+    const legacy = config.hosting.find((site: { site: string }) => site.site === 'gdsc-homecomming');
+    expect(primary).toMatchObject(primaryHosting);
+    expect(primary.headers).toEqual([
+      { source: '**', headers: [{ key: 'Cache-Control', value: 'no-cache' }] },
+      { source: '/assets/**', headers: [{ key: 'Cache-Control', value: 'public,max-age=31536000,immutable' }] },
+    ]);
+    expect(legacy).toEqual(legacyHosting);
+    expect(legacy.public).toBeUndefined();
+  });
+
+  test.each(
+    [
+      primaryHosting,
+      [primaryHosting],
+      [legacyHosting],
+      [primaryHosting, primaryHosting],
+      [primaryHosting, legacyHosting, { site: 'other', public: 'dist' }],
+      [{ ...primaryHosting, site: 'other' }, legacyHosting],
+      [{ ...primaryHosting, public: 'private' }, legacyHosting],
+      [{ ...primaryHosting, rewrites: [{ source: '**', destination: '/other.html' }] }, legacyHosting],
+      [
+        { ...primaryHosting, redirects: [{ source: '**', destination: 'https://wrong.example', type: 301 }] },
+        legacyHosting,
+      ],
+      [primaryHosting, { ...legacyHosting, public: 'dist' }],
+      [primaryHosting, { ...legacyHosting, redirects: [{ ...legacyHosting.redirects[0], source: '/' }] }],
+      [
+        primaryHosting,
+        {
+          ...legacyHosting,
+          redirects: [{ ...legacyHosting.redirects[0], destination: 'https://gdsc-homecoming.web.app/:path*' }],
+        },
+      ],
+      [
+        primaryHosting,
+        {
+          ...legacyHosting,
+          redirects: [{ ...legacyHosting.redirects[0], destination: 'https://wrong.example/:path' }],
+        },
+      ],
+      [primaryHosting, { ...legacyHosting, redirects: [{ ...legacyHosting.redirects[0], type: 302 }] }],
+      [primaryHosting, { ...legacyHosting, redirects: [{ ...legacyHosting.redirects[0], regex: '/only-this' }] }],
+    ].map((hosting) => ({ hosting })),
+  )('rejects incomplete multisite or broken redirect configurations before invoking CLI %#', ({ hosting }) => {
     const root = fixture();
-    writeFileSync(join(root, 'firebase.json'), JSON.stringify({ hosting: { site: 'wrong', public: 'dist' } }));
+    writeFileSync(join(root, 'firebase.json'), JSON.stringify(firebaseConfig(hosting)));
     expect(() => deploy({ root, environment, args: ['--dry-run'], log: () => {} })).toThrow('expected Hosting site');
-    writeFileSync(
-      join(root, 'firebase.json'),
-      JSON.stringify({
-        hosting: {
-          site: 'gdsc-homecomming',
-          public: 'dist',
-          predeploy: ['dangerous'],
-        },
-        firestore: {
-          rules: 'firestore.rules',
-          indexes: 'firestore.indexes.json',
-        },
-      }),
-    );
+  });
+
+  test.each([
+    firebaseConfig([{ ...primaryHosting, predeploy: ['dangerous'] }, legacyHosting]),
+    firebaseConfig([primaryHosting, { ...legacyHosting, predeploy: ['dangerous'] }]),
+    firebaseConfig([{ ...primaryHosting, postdeploy: ['dangerous'] }, legacyHosting]),
+    { ...firebaseConfig(), firestore: { ...firebaseConfig().firestore, predeploy: ['dangerous'] } },
+    { ...firebaseConfig(), firestore: { ...firebaseConfig().firestore, postdeploy: ['dangerous'] } },
+  ])('rejects deployment hooks for either Hosting site and Firestore %#', (config) => {
+    const root = fixture();
+    writeFileSync(join(root, 'firebase.json'), JSON.stringify(config));
     expect(() => deploy({ root, environment, args: ['--dry-run'], log: () => {} })).toThrow('Deployment hooks');
   });
 });
