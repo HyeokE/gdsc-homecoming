@@ -89,17 +89,15 @@ function IssuingFlow({
     return <Navigate to="/issuer" replace />;
   }
   return (
-    <section className="w-full min-w-0">
+    <section className="relative w-full min-w-0">
       {isReplay && (
-        <div className="mb-4 flex w-full justify-end px-4">
-          <button
-            type="button"
-            onClick={onReplayExit}
-            className="min-h-control px-3 text-caption underline underline-offset-4"
-          >
-            탑승권으로 돌아가기
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onReplayExit}
+          className="absolute top-0 right-4 z-10 min-h-control px-3 text-caption underline underline-offset-4"
+        >
+          탑승권으로 돌아가기
+        </button>
       )}
       {needsOrientation ? (
         <OrientationPrompt />
