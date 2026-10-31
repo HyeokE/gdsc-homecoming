@@ -1,5 +1,6 @@
 import { primaryButtonClass } from '@/components/common/buttonClasses';
 import { PaperTicket, TicketPerforation } from '@/components/brand';
+import { HomeProgram } from './HomeProgram';
 import './styles/landing.css';
 
 export interface HomeContainerProps {
@@ -62,6 +63,7 @@ export function HomeContainer({ onStart, disabled = false }: HomeContainerProps)
         <br />
         발급받은 탑승권도 다시 확인할 수 있어요.
       </p>
+      <HomeProgram />
     </PaperTicket>
   );
 }
