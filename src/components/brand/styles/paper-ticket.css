@@ -43,7 +43,6 @@
   justify-content: space-between;
   gap: 0.5rem 0.75rem;
   padding-bottom: 1.125rem;
-  border-bottom: 1px solid var(--ui-board-seam);
   font-family: var(--font-mono);
 }
 .paper-ticket__brand {
@@ -61,12 +60,6 @@
   fill: none;
   stroke-width: 7;
   stroke-linecap: round;
-}
-.paper-ticket__edition {
-  color: var(--ui-muted);
-  font-size: 0.5625rem;
-  line-height: 1.5;
-  white-space: nowrap;
 }
 .paper-ticket__display {
   font-family: 'Anton', 'Impact', 'Arial Narrow', sans-serif;

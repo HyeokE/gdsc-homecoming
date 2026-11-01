@@ -17,7 +17,6 @@ export function PaperTicket({
     <section className={`paper-ticket ${className}`} aria-labelledby={titleId}>
       <header className="paper-ticket__masthead">
         <AirlineBrand className="paper-ticket__brand" />
-        <span className="paper-ticket__edition">HOMECOMING 2026</span>
       </header>
       {children}
       <footer className="paper-ticket__footer">

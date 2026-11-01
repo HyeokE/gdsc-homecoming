@@ -1,0 +1,214 @@
+/* Safari paints overscroll and browser-safe regions from the document root. */
+:root:has(.journey),
+body:has(.journey) {
+  background: #faf9f6;
+  color-scheme: light;
+}
+.journey {
+  overflow-x: clip;
+  width: 100%;
+  margin-inline: auto;
+  background: #faf9f6;
+  color: #20252a;
+  color-scheme: light;
+}
+.journey__story {
+  height: 380svh;
+}
+.journey__scene {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 100svh;
+  pointer-events: none;
+}
+/* Keep the composition stable at svh; paint through the collapsed Safari toolbar. */
+.journey__backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: calc(100lvh + env(safe-area-inset-bottom, 0px));
+  background: #faf9f6;
+  pointer-events: none;
+}
+.journey__canvas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px))
+    calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  background: #faf9f6;
+  isolation: isolate;
+  will-change: opacity;
+}
+.journey__header {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100%, 1120px);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.journey__opening {
+  position: absolute;
+  top: 23%;
+  left: 24px;
+  z-index: 2;
+}
+.journey__display {
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: clamp(64px, 23vw, 112px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.015em;
+}
+.journey__opening-caption {
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.journey__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.journey__brand svg {
+  width: 24px;
+  height: 16px;
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.journey__message {
+  position: absolute;
+  top: calc(47% + min(18vw, 122px) + 40px);
+  right: 20px;
+  left: 20px;
+  z-index: 2;
+  margin: 0;
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.45;
+  text-align: center;
+  word-break: keep-all;
+}
+.journey__ticket-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 6svh;
+  perspective: 1200px;
+}
+.journey__flying-ticket {
+  position: relative;
+  flex: none;
+  width: min(calc(100vw - 40px), 680px);
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.journey__scroll {
+  z-index: 2;
+  margin-top: auto;
+  color: #20252a;
+}
+.journey__scroll svg {
+  display: block;
+  width: 24px;
+  height: 32px;
+  animation: journey-arrow 2.4s ease-in-out infinite;
+}
+@keyframes journey-arrow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(5px);
+  }
+  85% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.journey__arrival {
+  position: relative;
+  z-index: 1;
+  margin-top: -100svh;
+  background: #faf9f6;
+  scroll-margin-top: 0;
+}
+.journey__arrival .paper-ticket {
+  max-width: 500px;
+  margin-inline: auto;
+}
+.journey__arrival .paper-ticket__masthead {
+  display: none;
+}
+.journey__title {
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: clamp(76px, 24vw, 120px);
+  line-height: 1;
+  margin-block: 24px;
+}
+.journey__date {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.journey__venue {
+  font-size: 16px;
+  padding-block: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.journey__ticket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 16px;
+  margin-top: 20px;
+  background: #20252a;
+  color: #faf9f6;
+  font-size: 16px;
+}
+.journey .journey__ticket:hover {
+  color: #fff;
+}
+.journey a:focus-visible {
+  outline: 2px solid #2459a8;
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey__backdrop {
+    height: 100%;
+  }
+  .journey__scroll svg {
+    animation: none;
+  }
+  .journey__story {
+    height: auto;
+  }
+  .journey__scene {
+    position: relative;
+  }
+  .journey__arrival {
+    margin-top: 0;
+  }
+}

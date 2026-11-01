@@ -31,9 +31,10 @@ export function HomeContainer({ onStart, disabled = false }: HomeContainerProps)
         <div className="landing__detail">
           <dt>일시</dt>
           <dd className="landing__schedule">
-            <time dateTime="2026-11-21T15:00:00+09:00">2026.11.21 15:00</time>
+            <time dateTime="2026-11-21">2026.11.21</time>
             <span>
-              ~ <time dateTime="2026-11-22T04:00:00+09:00">11.22 04:00</time>
+              <time dateTime="2026-11-21T15:00:00+09:00">15:00</time>–
+              <time dateTime="2026-11-21T23:00:00+09:00">23:00</time>
             </span>
           </dd>
         </div>

@@ -11,14 +11,6 @@ export function HomeProgram() {
   return (
     <>
       <TicketPerforation />
-      <nav className="program-nav" aria-label="행사 안내">
-        <a href="#timetable">
-          SCHEDULE <span aria-hidden="true">↘</span>
-        </a>
-        <a href="#speakers">
-          SPEAKERS <span aria-hidden="true">↘</span>
-        </a>
-      </nav>
       <section id="timetable" className="home-program" aria-labelledby="timetable-title">
         <h2 id="timetable-title" className="home-program__title">
           SCHEDULE
@@ -39,8 +31,9 @@ export function HomeProgram() {
                   </span>
                 </article>
                 {speaker === 'Harry' && (
-                  <p className="schedule-break">
-                    휴식 <span>5분</span>
+                  <p className="schedule-entry schedule-break">
+                    <span className="schedule-break__label">휴식</span>
+                    <span className="schedule-entry__time">5분</span>
                   </p>
                 )}
               </div>
@@ -59,23 +52,6 @@ export function HomeProgram() {
             </header>
           </article>
         </div>
-      </section>
-      <TicketPerforation />
-      <section id="speakers" className="home-program" aria-labelledby="speakers-title">
-        <h2 id="speakers-title" className="home-program__title">
-          SPEAKERS
-        </h2>
-        <ul className="speaker-list">
-          {SESSIONS.map(({ speaker, title }, index) => (
-            <li key={speaker} id={`speaker-${speaker.toLowerCase()}`} className="speaker-row">
-              <span className="speaker-row__number">0{index + 1}</span>
-              <div>
-                <h3>{speaker}</h3>
-                <p>{title}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
       </section>
     </>
   );

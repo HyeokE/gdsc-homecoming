@@ -1,0 +1,31 @@
+.flight-paper {
+  position: relative;
+  width: 100%;
+}
+.flight-paper__source {
+  position: relative;
+}
+.flight-paper[data-flexing] > .flight-paper__source {
+  opacity: 0;
+}
+.flight-paper__canvas {
+  position: absolute;
+  top: -70%;
+  left: -20%;
+  display: block;
+  width: 140%;
+  height: 240%;
+  visibility: hidden;
+  pointer-events: none;
+}
+.flight-paper[data-flexing] > .flight-paper__canvas {
+  visibility: visible;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flight-paper[data-flexing] > .flight-paper__source {
+    opacity: 1;
+  }
+  .flight-paper__canvas {
+    display: none;
+  }
+}
