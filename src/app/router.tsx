@@ -8,7 +8,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/journey" element={<JourneyPage ticket={<HomecomingInvitationPass />} />} />
+        <Route path="/" element={<JourneyPage ticket={<HomecomingInvitationPass />} />} />
         <Route path={PREVIEW_RESULT_PATH} element={<PreviewResult />} />
         <Route path="/preview/*" element={<PreviewApp />} />
         <Route path="/*" element={<App />} />

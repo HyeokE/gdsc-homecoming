@@ -105,7 +105,7 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
           <a className="journey__venue" href="https://naver.me/GMmLF6Ap" target="_blank" rel="noopener noreferrer">
             성수 그린힐드 ↗
           </a>
-          <Link className="journey__ticket" to="/">
+          <Link className="journey__ticket" to="/email">
             탑승권 발급하러 가기 <span aria-hidden="true">→</span>
           </Link>
           <HomeProgram />
