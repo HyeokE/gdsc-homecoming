@@ -32,6 +32,9 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
   const sceneHeight = useMotionValue(844);
   const storyRef = useRef<HTMLDivElement>(null);
   const invitationRef = useRef<HTMLElement>(null);
+  const ticketSlotRef = useRef<HTMLDivElement>(null);
+  const landingX = useMotionValue(0);
+  const landingY = useMotionValue(0);
   const programRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion() ?? false;
   const { scrollYProgress, scrollY } = useScroll({ target: storyRef, offset: ['start start', 'end end'] });
@@ -49,9 +52,9 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
 
   const { scrollYProgress: invitationProgress } = useScroll({
     target: invitationRef,
-    offset: ['start end', 'end start'],
+    offset: ['start end', 'start start'],
   });
-  const sceneOpacity = useTransform(invitationProgress, [0.6, 0.85], [1, 0]);
+  const sceneOpacity = useMotionValue(1);
 
   const paperProgress = useTransform(invitationProgress, [0, 0.75, 1], [0, 0.6, 1]);
 
@@ -59,9 +62,19 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
 
   // Keep one modest-sized ticket layer; avoid scaling a full-screen SVG in Safari.
   const ticketLateral = useTransform(flightProgress, lateralPath);
-  const ticketX = useTransform(ticketLateral, (value) => `${value}%`);
-  const ticketY = useTransform(flightProgress, (value) => `${verticalPath(value)}svh`);
-  const ticketScale = useTransform(flightProgress, scalePath);
+  const ticketX = useTransform(() => {
+    const progress = invitationProgress.get();
+    const width = containerRef.current?.clientWidth ?? 390;
+    return (ticketLateral.get() / 100) * (width - 40) * (1 - progress) + landingX.get() * progress;
+  });
+  const ticketY = useTransform(() => {
+    const progress = invitationProgress.get();
+    return (verticalPath(flightProgress.get()) / 100) * sceneHeight.get() * (1 - progress) + landingY.get() * progress;
+  });
+  const ticketScale = useTransform(() => {
+    const progress = invitationProgress.get();
+    return scalePath(flightProgress.get()) * (1 - progress) + 0.9 * progress;
+  });
   const lateralVelocity = useVelocity(ticketLateral);
   const bank = useSpring(lateralVelocity, { stiffness: 65, damping: 16 });
   const ticketRotate = useTransform(
@@ -74,12 +87,30 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
     if (!scene) {
       return;
     }
-    const measure = () => sceneHeight.set(scene.clientHeight);
+    const measure = () => {
+      sceneHeight.set(scene.clientHeight);
+      const slot = ticketSlotRef.current;
+      const invitation = invitationRef.current;
+      const container = containerRef.current;
+      if (slot && invitation && container) {
+        const slotBounds = slot.getBoundingClientRect();
+        const invitationBounds = invitation.getBoundingClientRect();
+        const containerBounds = container.getBoundingClientRect();
+        landingX.set(slotBounds.left + slotBounds.width / 2 - containerBounds.left - containerBounds.width / 2);
+        landingY.set(slotBounds.top + slotBounds.height / 2 - invitationBounds.top - scene.clientHeight * 0.47);
+      }
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(scene);
+    if (ticketSlotRef.current) {
+      observer.observe(ticketSlotRef.current);
+    }
+    if (invitationRef.current) {
+      observer.observe(invitationRef.current);
+    }
     measure();
     return () => observer.disconnect();
-  }, [sceneHeight]);
+  }, [sceneHeight, landingX, landingY]);
   const openingOpacity = useTransform(() =>
     Math.max(0, Math.min(1, 1 - (scrollY.get() / sceneHeight.get() - 0.38) / 0.39)),
   );
@@ -155,8 +186,14 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
               </motion.div>
             </div>
             <div className="journey__scroll" aria-hidden="true">
-              <svg viewBox="0 0 24 32" fill="none">
-                <path d="M12 3v24M4 19l8 8 8-8" stroke="currentColor" strokeWidth="1.5" />
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="m5 9 7 7 7-7"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
           </motion.div>
@@ -165,53 +202,57 @@ export function JourneyPage({ ticket }: { ticket: ReactNode }) {
           <div ref={programRef} className="journey__program">
             <HomeProgram />
           </div>
-          <section ref={invitationRef} className="journey__invitation" aria-label="홈커밍 초대">
-            <p>당신을 초대합니다.</p>
+          <section ref={invitationRef} id="arrival" className="journey__arrival" aria-label="홈커밍 초대">
+            <PaperTicket titleId="journey-title">
+              <h2 id="journey-title" className="journey__invitation-title">
+                당신을 초대합니다.
+              </h2>
+              <div ref={ticketSlotRef} className="journey__invitation-ticket" aria-hidden="true">
+                {reducedMotion ? ticket : null}
+              </div>
+              <dl className="journey__details">
+                <div>
+                  <dt>일정</dt>
+                  <dd>
+                    <time dateTime="2026-11-21">2026년 11월 21일</time>
+                    <span>15:00–23:00</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>장소</dt>
+                  <dd>
+                    <a
+                      className="journey__venue"
+                      href="https://naver.me/GMmLF6Ap"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      성수 그린힐드 ↗
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+              <div ref={landingRef} className="journey__landing">
+                <Link className="journey__ticket" to="/email">
+                  <svg
+                    className="journey__button-runway"
+                    viewBox="0 0 300 14"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 3V11M17 3V11M22 3V11M278 3V11M283 3V11M288 3V11"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <path d="M38 7H262" stroke="currentColor" strokeWidth="1" strokeDasharray="12 12" />
+                  </svg>
+                  탑승권 발급하러 가기 <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </PaperTicket>
           </section>
         </div>
-      </div>
-      <div id="arrival" className="journey__arrival">
-        <PaperTicket titleId="journey-title">
-          <h2 id="journey-title" className="sr-only">
-            일정 및 장소
-          </h2>
-          <dl className="journey__details">
-            <div>
-              <dt>일정</dt>
-              <dd>
-                <time dateTime="2026-11-21">2026년 11월 21일</time>
-                <span>15:00–23:00</span>
-              </dd>
-            </div>
-            <div>
-              <dt>장소</dt>
-              <dd>
-                <a
-                  className="journey__venue"
-                  href="https://naver.me/GMmLF6Ap"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  성수 그린힐드 ↗
-                </a>
-              </dd>
-            </div>
-          </dl>
-          <div ref={landingRef} className="journey__landing">
-            <Link className="journey__ticket" to="/email">
-              <svg
-                className="journey__button-runway"
-                viewBox="0 0 300 14"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <path d="M12 3V11M17 3V11M22 3V11M278 3V11M283 3V11M288 3V11" stroke="currentColor" strokeWidth="2" />
-                <path d="M38 7H262" stroke="currentColor" strokeWidth="1" strokeDasharray="12 12" />
-              </svg>
-              탑승권 발급하러 가기 <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-        </PaperTicket>
       </div>
     </main>
   );

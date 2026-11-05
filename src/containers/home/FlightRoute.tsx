@@ -75,10 +75,10 @@ export function FlightRoute({ containerRef, landingRef }: FlightRouteProps) {
       landingRadius = Math.max(16, destination.left - bounds.left - routeEdge);
       startY = (opening?.offsetTop ?? viewportHeight * 0.23) - 9;
       endY = destination.top - bounds.top - takeoffScroll - 14 * aircraftScale;
-      landingScroll = Math.min(container.scrollHeight - viewportHeight, endY + takeoffScroll - viewportHeight * 0.72);
+      landingScroll = Math.min(bounds.height - viewportHeight, endY + takeoffScroll - viewportHeight * 0.72);
       endX = destination.right - bounds.left - AIRCRAFT_NOSE_LENGTH * aircraftScale;
       containerTop = bounds.top + window.scrollY;
-      const routeHeight = container.scrollHeight - takeoffScroll;
+      const routeHeight = bounds.height - takeoffScroll;
       svg.style.height = `${routeHeight}px`;
       svg.setAttribute('viewBox', `0 0 ${bounds.width} ${routeHeight}`);
       startX = runwayLeft + runwayWidth - 30 * aircraftScale;

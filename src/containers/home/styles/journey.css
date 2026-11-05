@@ -117,40 +117,34 @@ body:has(.journey) {
 .journey__scroll svg {
   display: block;
   width: 24px;
-  height: 32px;
+  height: 24px;
   animation: journey-arrow 2.4s ease-in-out infinite;
 }
 @keyframes journey-arrow {
   0%,
   100% {
-    opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-4px);
   }
-  35% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-    transform: translateY(5px);
-  }
-  85% {
-    opacity: 0;
-    transform: translateY(8px);
+  50% {
+    transform: translateY(4px);
   }
 }
 .journey__arrival {
   position: relative;
   z-index: 1;
   margin-top: 0;
-  background: #faf9f6;
+  background: transparent;
+  pointer-events: auto;
   scroll-margin-top: 0;
 }
 .journey__arrival .paper-ticket {
   min-height: 0;
   max-width: 500px;
   margin-inline: auto;
-  padding-left: 52px;
-  padding-right: 24px;
+  min-height: 100svh;
+  justify-content: center;
+  background: transparent;
+  padding: max(64px, env(safe-area-inset-top, 0px)) 32px max(20px, env(safe-area-inset-bottom, 0px));
 }
 .journey__arrival .paper-ticket__footer {
   margin-top: 24px;
@@ -161,26 +155,26 @@ body:has(.journey) {
 }
 .journey__details > div {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 20px;
-  padding-block: 24px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  padding-block: 12px;
   border-top: 1px solid #bcbeb8;
+  text-align: center;
 }
 .journey__details dt {
-  padding-top: 3px;
-  font-size: 14px;
+  font-size: 12px;
   color: #5d6267;
 }
 .journey__details dd {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.5;
   letter-spacing: -0.035em;
 }
 .journey__details dd span {
-  display: block;
-  margin-top: 4px;
-  font-size: 16px;
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 14px;
   font-weight: 400;
   color: #5d6267;
 }
@@ -248,16 +242,18 @@ body:has(.journey) {
 .journey__program #timetable {
   margin-top: 45svh;
 }
-.journey__invitation {
-  height: 100svh;
-  padding: 18svh 24px 48px 52px;
-  text-align: center;
-}
-.journey__invitation p {
+.journey__invitation-title {
   font-size: clamp(24px, 6vw, 32px);
   font-weight: 500;
   letter-spacing: -0.055em;
+  text-align: center;
   word-break: keep-all;
+}
+.journey__invitation-ticket {
+  aspect-ratio: 2.5;
+  margin: clamp(28px, 6svh, 52px) -8px;
+  transform: rotate(-7deg);
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .journey__story-content {
@@ -266,10 +262,6 @@ body:has(.journey) {
   }
   .journey__program #timetable {
     margin-top: 48px;
-  }
-  .journey__invitation {
-    height: auto;
-    padding: 64px 24px 48px 52px;
   }
   .journey__ticket-stage {
     align-items: flex-end;
@@ -294,7 +286,7 @@ body:has(.journey) {
   letter-spacing: -0.015em;
 }
 .journey__landing {
-  margin-top: 40px;
+  margin-top: 24px;
 }
 
 .journey__button-runway {
