@@ -66,8 +66,24 @@ export function InputScreen({
         {email ? '신청한 이메일을 입력해주세요' : '닉네임을 입력해주세요.'}
       </h1>
       <p id={`${id}-help`} className="terminal-form__help">
-        {email ? '참가 신청에 사용한 이메일로 발권할 수 있어요.' : '(닉네임 + 성 조합)'}
+        {email
+          ? '먼저 참가 신청을 완료해야 탑승권을 발급받을 수 있어요. 신청에 사용한 이메일을 입력해주세요.'
+          : '(닉네임 + 성 조합)'}
       </p>
+      {email && (
+        <a
+          href="https://forms.gle/a4GRdPD6gSkNkNbo6"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-touch items-center self-start text-caption text-link underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          참가 신청하기{' '}
+          <span className="ml-1" aria-hidden="true">
+            ↗
+          </span>
+          <span className="sr-only"> (새 창)</span>
+        </a>
+      )}
       {demoEmail && (
         <p className="mt-3 text-caption text-muted">
           데모 이메일: <span className="wrap-anywhere">{demoEmail}</span>
