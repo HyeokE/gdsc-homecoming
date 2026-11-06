@@ -23,7 +23,7 @@ const SESSIONS: Session[] = [
   {
     speaker: 'Jason',
     title: '지금의 내가, 그때의 나에게',
-    subtitle: '4년 차 개발자',
+    subtitle: '비전공 취준생에서 4년 차 개발자까지.',
     imageSrc: jasonImage,
   },
   {
