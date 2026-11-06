@@ -28,7 +28,8 @@ const SESSIONS: Session[] = [
   },
   {
     speaker: 'Pascal',
-    title: '제목 추후 공개',
+    title: '나는 LLM을 잘 쓰고 있는 걸까?',
+    subtitle: '동작 원리를 알고 쓰자',
     imageSrc: pascalImage,
   },
   {
