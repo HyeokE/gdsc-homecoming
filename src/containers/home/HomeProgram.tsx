@@ -13,12 +13,6 @@ interface Session {
 }
 
 const SESSIONS: Session[] = [
-  {
-    speaker: 'Cindy',
-    title: '안녕~ 𝐽𝑢𝑛𝑖𝑜𝑟 입니다! 이거 제 커리어양,',
-    subtitle: 'GDSC에서 주니어 프디가 되기까지',
-    imageSrc: cindyImage,
-  },
   { speaker: 'Harry', title: '대체되기 전까지 꾸준히 성장하는 법', imageSrc: harryImage },
   {
     speaker: 'Jason',
@@ -27,16 +21,22 @@ const SESSIONS: Session[] = [
     imageSrc: jasonImage,
   },
   {
+    speaker: 'Want',
+    imageSrc: wantImage,
+    title: '왔다네 정말로, 아무도 안 믿었던 멸종위기개발',
+    subtitle: '취업부터 그 너머까지 개발자로 살아간다는 것',
+  },
+  {
     speaker: 'Pascal',
     title: '나는 LLM을 잘 쓰고 있는 걸까?',
     subtitle: '동작 원리를 알고 쓰자',
     imageSrc: pascalImage,
   },
   {
-    speaker: 'Want',
-    imageSrc: wantImage,
-    title: '왔다네 정말로, 아무도 안 믿었던 멸종위기개발',
-    subtitle: '취업부터 그 너머까지 개발자로 살아간다는 것',
+    speaker: 'Cindy',
+    title: '안녕~ 𝐽𝑢𝑛𝑖𝑜𝑟 입니다! 이거 제 커리어양,',
+    subtitle: 'GDSC에서 주니어 프디가 되기까지',
+    imageSrc: cindyImage,
   },
 ];
 export function HomeProgram() {
@@ -82,7 +82,7 @@ export function HomeProgram() {
                   <p className="schedule-entry__speaker">{speaker}</p>
                   {subtitle && <p className="schedule-entry__description">{subtitle}</p>}
                 </article>
-                {speaker === 'Harry' && (
+                {index === 1 && (
                   <p className="schedule-break">
                     <span>휴식</span>
                     <span>5분</span>
