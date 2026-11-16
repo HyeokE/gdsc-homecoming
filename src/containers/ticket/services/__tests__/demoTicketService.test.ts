@@ -48,14 +48,17 @@ describe('local demo ticket service', () => {
     expect(restored?.reissueUsed).toBe(true);
     expect(await service.reissue('demo@gdg.example', 'two')).toEqual(restored);
   });
-  test('country capacity four and event capacity sixty are separate', async () => {
-    const emails = Array.from({ length: 61 }, (_, i) => `p${i}@gdg.example`);
+  test('only active countries are allocated, with four tickets per country', async () => {
+    const emails = Array.from({ length: 45 }, (_, i) => `p${i}@gdg.example`);
     const { service } = fixture(emails);
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 44; i++) {
       await service.issue(emails[i]!, `P${i}`, `${i}`);
     }
-    expect(await service.count('kr')).toBe(4);
-    await expect(service.issue(emails[60]!, 'Last', 'last')).rejects.toMatchObject({ kind: 'capacity' });
+    expect(await service.count('jp')).toBe(4);
+    for (const id of ['kr', 'th', 'in', 'ca', 'mx', 'ma', 'eg', 'au', 'nz']) {
+      expect(await service.count(id)).toBe(0);
+    }
+    await expect(service.issue(emails[44]!, 'Last', 'last')).rejects.toMatchObject({ kind: 'capacity' });
   });
   test('invalid storage is reported, never silently deleted', async () => {
     const { data, service } = fixture();

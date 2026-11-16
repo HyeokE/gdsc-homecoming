@@ -18,6 +18,9 @@ service cloud.firestore {
       return ['kr', 'jp', 'cn', 'th', 'in', 'vn', 'fr', 'it', 'gb', 'es',
               'de', 'gr', 'us', 'ca', 'mx', 'br', 'ma', 'eg', 'au', 'nz'];
     }
+    function activeDestinationIds() {
+      return ['jp', 'cn', 'vn', 'fr', 'it', 'gb', 'es', 'de', 'gr', 'us', 'br'];
+    }
     function validOperationId(id) {
       return id is string && id.matches('[A-Za-z0-9_-]{8,128}');
     }
@@ -46,7 +49,7 @@ service cloud.firestore {
       return t.keys().hasAll(['id', 'destinationId', 'passengerName', 'gate', 'issuedAt', 'reissueUsed', 'revision', 'lastOperationId'])
         && t.keys().hasOnly(['id', 'destinationId', 'passengerName', 'gate', 'issuedAt', 'reissueUsed', 'revision', 'lastOperationId'])
         && t.id is string && t.id.matches('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-        && t.destinationId in destinationIds()
+        && t.destinationId in activeDestinationIds()
         && t.passengerName is string && t.passengerName.size() >= 1 && t.passengerName.size() <= 60
         && t.passengerName.matches('[^\\x00-\\x1F\\x7F]+')
         && t.gate == 'A03' && t.issuedAt is timestamp

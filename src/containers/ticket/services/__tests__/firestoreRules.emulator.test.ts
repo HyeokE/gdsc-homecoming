@@ -19,14 +19,14 @@ import {
   type DocumentData,
   type Firestore,
 } from 'firebase/firestore';
-import { destinations } from '../../constants/destinations';
+import { allDestinations } from '../../constants/destinations';
 
 const emulator = process.env.FIRESTORE_EMULATOR_HOST;
 const root = 'events/homecoming';
 const member = 'a'.repeat(64);
 const anotherMember = 'b'.repeat(64);
 const outsider = 'c'.repeat(64);
-const emptyCounts = () => Object.fromEntries(destinations.map(({ id }) => [id, 0]));
+const emptyCounts = () => Object.fromEntries(allDestinations.map(({ id }) => [id, 0]));
 const emptyEvent = () => ({
   schemaVersion: 2,
   total: 0,
@@ -78,7 +78,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
     await environment?.cleanup();
   });
 
-  async function planIssue(key = member, destinationId = 'kr'): Promise<Commit> {
+  async function planIssue(key = member, destinationId = 'cn'): Promise<Commit> {
     const allocation = (await getDoc(doc(db, root))).data() as Allocation;
     const operationId = crypto.randomUUID();
     allocation.total++;
@@ -160,8 +160,36 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
       lastOperationId: event.lastOperationId,
     });
     expect(event.total).toBe(1);
+    expect(event.counts.cn).toBe(0);
+    expect(event.counts.jp).toBe(1);
+  });
+
+  test.each(['kr', 'th', 'in', 'ca', 'mx', 'ma', 'eg', 'au', 'nz'])(
+    'rejects issuance and redraw to disabled destination %s',
+    async (destinationId) => {
+      await assertFails(commit(await planIssue(member, destinationId)));
+      await issue();
+      await assertFails(commit(await planRedraw(destinationId)));
+      const ticket = (await getDoc(doc(db, `${root}/tickets/${member}`))).data()!;
+      expect(ticket.destinationId).toBe('cn');
+      expect(ticket.reissueUsed).toBe(false);
+    },
+  );
+
+  test('existing tickets for disabled destinations remain readable and can redraw to active destinations', async () => {
+    const legacy = await planIssue(member, 'kr');
+    await environment.withSecurityRulesDisabled(async (context) => {
+      const admin = context.firestore();
+      await setDoc(doc(admin, root), legacy.allocation);
+      await setDoc(doc(admin, `${root}/tickets/${member}`), legacy.ticket);
+    });
+    const ticket = await assertSucceeds(getDoc(doc(db, `${root}/tickets/${member}`)));
+    expect(ticket.data()?.destinationId).toBe('kr');
+    await assertSucceeds(commit(await planRedraw('jp')));
+    const event = (await getDoc(doc(db, root))).data()!;
     expect(event.counts.kr).toBe(0);
     expect(event.counts.jp).toBe(1);
+    expect(event.total).toBe(1);
   });
 
   test('only exact roster/member ticket and public aggregate reads are allowed', async () => {
@@ -187,7 +215,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
       setDoc(doc(db, root), {
         ...emptyEvent(),
         total: 1,
-        counts: { ...emptyCounts(), kr: 1 },
+        counts: { ...emptyCounts(), cn: 1 },
         lastOperationId: crypto.randomUUID(),
       }),
     );
@@ -227,16 +255,16 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
         delete plan.allocation.counts.nz;
       }
       if (kind === 'fractional') {
-        plan.allocation.counts.kr = 1.5;
+        plan.allocation.counts.cn = 1.5;
       }
       if (kind === 'negative') {
-        plan.allocation.counts.kr = -1;
+        plan.allocation.counts.cn = -1;
       }
       if (kind === 'unrelated') {
         plan.allocation.counts.jp = 1;
       }
       if (kind === 'unchanged') {
-        plan.allocation.counts.kr = 0;
+        plan.allocation.counts.cn = 0;
       }
       await assertFails(commit(plan));
     },
@@ -245,7 +273,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
     await seedAllocation({
       ...emptyEvent(),
       total: 4,
-      counts: { ...emptyCounts(), kr: 4 },
+      counts: { ...emptyCounts(), cn: 4 },
     });
     await assertFails(commit(await planIssue()));
   });
@@ -253,7 +281,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
     await seedAllocation({
       ...emptyEvent(),
       total: 60,
-      counts: Object.fromEntries(destinations.map(({ id }) => [id, 3])),
+      counts: Object.fromEntries(allDestinations.map(({ id }) => [id, 3])),
     });
     await assertFails(commit(await planIssue()));
   });
@@ -315,7 +343,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
   });
   test('rejects second redraw and redraw to same destination', async () => {
     await issue();
-    await assertFails(commit(await planRedraw('kr')));
+    await assertFails(commit(await planRedraw('cn')));
     await assertSucceeds(commit(await planRedraw('jp')));
     await assertFails(commit(await planRedraw('fr')));
   });
@@ -334,7 +362,7 @@ describe.skipIf(!emulator)('direct Firestore allocation rules', () => {
   test('redraw must release old seat and reserve new one together', async () => {
     await issue();
     const plan = await planRedraw();
-    plan.allocation.counts.kr = 1;
+    plan.allocation.counts.cn = 1;
     await assertFails(commit(plan));
     const other = await planRedraw();
     other.allocation.counts.jp = 0;

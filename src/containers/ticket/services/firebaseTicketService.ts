@@ -9,7 +9,7 @@ import {
   type Firestore,
   type DocumentSnapshot,
 } from 'firebase/firestore';
-import { destinations } from '../constants/destinations';
+import { allDestinations, destinations } from '../constants/destinations';
 import { initializeFirebaseClient, type FirebaseEnvironment } from './firebase';
 import type { ServiceErrorKind, TicketService } from '../types/ticket';
 import { TicketServiceError } from './ticketServiceError';
@@ -110,7 +110,7 @@ export function createFirebaseTicketService(call: TicketApiCall): TicketService 
   };
 }
 
-const destinationIds = destinations.map(({ id }) => id);
+const destinationIds = allDestinations.map(({ id }) => id);
 const eventPath = 'events/homecoming';
 
 function fail(kind: ServiceErrorKind): never {
@@ -188,7 +188,7 @@ function storedTicketFrom(snapshot: DocumentSnapshot) {
 }
 
 function chooseDestination(counts: Record<string, number>, previous?: string): string {
-  const available = destinationIds.filter((id) => id !== previous && counts[id] < 4);
+  const available = destinations.map(({ id }) => id).filter((id) => id !== previous && counts[id] < 4);
   if (!available.length) {
     return fail(previous ? 'no-alternative' : 'capacity');
   }

@@ -2,7 +2,7 @@ import type { Destination } from '../types/ticket';
 
 // Cities, airport codes and keywords preserve the planning source.
 // Introductions are draft copy derived from those keywords, not country facts.
-export const destinations: readonly Destination[] = [
+export const allDestinations: readonly Destination[] = [
   {
     id: 'kr',
     name: '한국',
@@ -185,8 +185,12 @@ export const destinations: readonly Destination[] = [
   },
 ];
 
+// Keep the historical catalog for stored tickets and the existing allocation counters.
+const ACTIVE_DESTINATION_IDS = new Set(['jp', 'cn', 'vn', 'fr', 'it', 'gb', 'es', 'de', 'gr', 'us', 'br']);
+export const destinations: readonly Destination[] = allDestinations.filter(({ id }) => ACTIVE_DESTINATION_IDS.has(id));
+
 export function getDestination(id: string): Destination {
-  const destination = destinations.find((item) => item.id === id);
+  const destination = allDestinations.find((item) => item.id === id);
   if (!destination) {
     throw new Error('Unknown demo destination');
   }

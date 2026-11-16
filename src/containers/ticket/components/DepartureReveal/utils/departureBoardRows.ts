@@ -1,6 +1,6 @@
 import type { RollingCell } from '../../../types/rolling';
 
-import { destinations } from '../../../constants/destinations';
+import { allDestinations } from '../../../constants/destinations';
 
 // Identifiers verified against official airport/airline sources; schedules remain mock.
 export const mockAirlineFixtures = [
@@ -46,7 +46,7 @@ const graphemes = (text: string) => {
 };
 export const boardCountryColumns = Math.max(
   1,
-  ...destinations.map((destination) => graphemes(destination.wheelLabel).length),
+  ...allDestinations.map((destination) => graphemes(destination.wheelLabel).length),
 );
 export const boardStatusColumns = Math.max(...boardStatuses.map((status) => graphemes(status).length));
 export const boardAirlineColumns = Math.max(

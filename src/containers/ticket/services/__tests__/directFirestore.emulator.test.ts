@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 import { initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { doc, getDoc, setDoc, type Firestore } from 'firebase/firestore';
-import { destinations } from '../../constants/destinations';
+import { allDestinations, destinations } from '../../constants/destinations';
 import { createFirebaseTicketService, createFirestoreTicketCall, firestoreEmailKey } from '../firebaseTicketService';
 import type { TicketService } from '../../types/ticket';
 
@@ -30,7 +30,7 @@ describe.skipIf(!emulator)('direct browser Firestore issuance', () => {
       await setDoc(doc(db, 'events/homecoming'), {
         schemaVersion: 2,
         total: 0,
-        counts: Object.fromEntries(destinations.map(({ id }) => [id, 0])),
+        counts: Object.fromEntries(allDestinations.map(({ id }) => [id, 0])),
         lastOperationId: '',
       });
       await Promise.all(
@@ -71,6 +71,7 @@ describe.skipIf(!emulator)('direct browser Firestore issuance', () => {
     );
     expect(new Set(issued.map((ticket) => ticket.id)).size).toBe(1);
     expect(new Set(issued.map((ticket) => ticket.destinationId)).size).toBe(1);
+    expect(destinations.some(({ id }) => id === issued[0].destinationId)).toBe(true);
     expect(issued[0].revision).toBe(1);
     expect(issued[0].issuedAt).toBeGreaterThan(0);
     const operation = crypto.randomUUID();
@@ -100,9 +101,9 @@ describe.skipIf(!emulator)('direct browser Firestore issuance', () => {
         )),
       );
     }
-    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(59);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(43);
     const rejected = results.filter((result) => result.status === 'rejected');
-    expect(rejected).toHaveLength(6);
+    expect(rejected).toHaveLength(22);
     for (const result of rejected) {
       expect(result.reason).toMatchObject({ kind: 'capacity' });
     }
@@ -110,14 +111,17 @@ describe.skipIf(!emulator)('direct browser Firestore issuance', () => {
       service.reissue('member1@example.test', crypto.randomUUID()),
       service.reissue('member1@example.test', crypto.randomUUID()),
     ]);
-    expect(competingRedraws.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(competingRedraws.filter((result) => result.status === 'fulfilled')).toHaveLength(0);
     const lostRedraw = competingRedraws.find((result) => result.status === 'rejected');
-    expect(lostRedraw?.reason).toMatchObject({ kind: 'reissue-used' });
+    expect(lostRedraw?.reason).toMatchObject({ kind: 'no-alternative' });
     await environment.withSecurityRulesDisabled(async (context) => {
       const event = (await getDoc(doc(context.firestore(), 'events/homecoming'))).data()!;
       const counts = Object.values(event.counts) as number[];
-      expect(event.total).toBe(60);
-      expect(counts.reduce((sum, count) => sum + count, 0)).toBe(60);
+      expect(event.total).toBe(44);
+      expect(counts.reduce((sum, count) => sum + count, 0)).toBe(44);
+      for (const { id } of allDestinations.filter((item) => !destinations.includes(item))) {
+        expect(event.counts[id]).toBe(0);
+      }
       expect(counts.every((count) => count >= 0 && count <= 4)).toBe(true);
       expect(Object.keys(event).sort()).toEqual(['counts', 'lastOperationId', 'schemaVersion', 'total']);
     });
